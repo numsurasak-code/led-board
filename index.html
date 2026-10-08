@@ -419,8 +419,8 @@ function drawPins(fit){
   if(fit&&pts.length>1) map.fitBounds(pts,{padding:[30,30],maxZoom:15});
 }
 function hist(r){return '<div class="hist">'+r.d.map((d,j)=>{const[l,c]=r.s[j]===0?(d>=TODAY?['รอ','t-pend']:['ไม่ระบุ','t-pend']):st(r.s[j]);return `<span class="tag ${c}" title="นัดที่ ${j+1} ${fd(d)}">${j+1}·${fd(d)} ${l}</span>`}).join('')+'</div>'}
-function imgLinks(r){if(!r.pic)return '';const b=r.pic.replace(/p\.jpg$/,''),root=PUBLIC?'img/':(ARCH||'https://asset.led.go.th/PPKPicture/');
-  return `<a class="btn" target="_blank" rel="noopener" href="${root}${esc(r.pic)}">📷 รูปทรัพย์</a><a class="btn" target="_blank" rel="noopener" href="${root}${esc(b)}m.jpg">แผนที่สังเขป</a><a class="btn" target="_blank" rel="noopener" href="${root}${esc(b)}j.jpg">แผนที่โจทก์</a>`}
+function imgLinks(r){if(!r.pic)return '';const b=r.pic.replace(/p\.jpg$/,''),root=PUBLIC?'img/':'https://asset.led.go.th/PPKPicture/',mroot='https://asset.led.go.th/PPKPicture/';
+  return `<a class="btn" target="_blank" rel="noopener" href="${root}${esc(r.pic)}">📷 รูปทรัพย์</a><a class="btn" target="_blank" rel="noopener" href="${mroot}${esc(b)}m.jpg">แผนที่สังเขป</a><a class="btn" target="_blank" rel="noopener" href="${mroot}${esc(b)}j.jpg">แผนที่โจทก์</a>`}
 function histPrev(r){const cur=new Set(r.d);const prev=r.H.filter(x=>!cur.has(x[0]));if(!prev.length)return '';
   return `<details class="prev"><summary>📜 ประวัติก่อนล็อตนี้ (${r.prevN} นัด)</summary>${prev.map(x=>`<div>${fd(x[0])} · ลำดับ ${esc(x[1])} · ${esc(x[2])}${x[3]?' '+fm(x[3])+' บ.':''}</div>`).join('')}</details>`}
 function pop(r){

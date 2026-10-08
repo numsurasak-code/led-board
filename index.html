@@ -95,6 +95,7 @@ select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--line
 .bl{color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bt{height:12px;background:var(--surface2);border-radius:0 4px 4px 0}
 .bf{display:block;height:100%;background:var(--house);border-radius:0 4px 4px 0;min-width:2px}.bv{font-variant-numeric:tabular-nums;white-space:nowrap}
 .tips{margin:0;padding-left:20px;display:grid;gap:4px}
+.am-cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.am-cards .card{border-top-width:1px}.am-cards .n{font-size:20px}
 .card.office b{font-size:14px}
 .leaflet-control-layers-toggle{background-image:none!important;width:auto!important;height:auto!important;padding:6px 10px;font-size:13px;color:var(--ink);text-decoration:none}
 .leaflet-control-layers-toggle::after{content:'🛰️ ดาวเทียม / แผนที่'}
@@ -264,7 +265,7 @@ function saveNote(k,txt){const r=allRows().find(x=>x.k===k);if(!r)return;txt=txt
 
 // ---------- routing ----------
 let route='home', view='map', F={date:'',type:'',debt:'',tb:'',max:0,mine:'',stat:'',lot:'',am:''};
-function go(r){location.hash=r==='home'?'':r; show(r)}
+function go(r){const h=r==='home'?'':r; if(location.hash.slice(1)!==h) location.hash=h; else show(r)}  // hashchange เรียก show เอง
 window.addEventListener('hashchange',()=>show(location.hash.slice(1)||'home'));
 $('btnHome').onclick=()=>go('home');
 $('btnHub').onclick=()=>go('o-'+ROUTES[route].area);
@@ -277,7 +278,7 @@ async function show(r){
   if(!R.hub){$('btnHub').hidden=false;$('btnHub').textContent='‹ '+AREAS[R.area].short}
   if(R.hub){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sHome'); renderHub(R.area); return; }
   if(R.page){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sUpd'); await renderAnalysis(R.area); return; }
-  F={date:'',type:R.type,debt:'',tb:'',max:0,mine:'',stat:'',lot:'',am:''}; view='map';
+  F={date:'',type:R.type,debt:'',tb:'',max:0,mine:'',stat:'',lot:'',am:PRE_AM}; PRE_AM=''; view='map';
   $('tabs').hidden=false; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched;
   buildRail(); drawBase(R.area); renderRoute(true);
 }
@@ -326,12 +327,16 @@ function renderHub(a){
      ${A.types.map(k=>live.length?card(a+'-'+k,k==='h'?'--house':k==='l'?'--land':'--condo',(k==='h'?'🏠 ':k==='l'?'🌳 ':'🏢 ')+KN[k],k==='h'?'ที่ดินพร้อมสิ่งปลูกสร้าง':k==='c'?'คอนโด / อาคารชุด':'ที่ดินเปล่า',c(r=>r.kind===k)):'').join('')}
      ${A.ana?`<button type="button" class="card" style="--c:var(--brand)" data-go="${a}-ana"><b>📊 วิเคราะห์การประมูล</b><span class="n">6 เดือน</span><span class="s">ราคาขายจริง · นัดที่ขายได้ · การสู้ราคา · ทำเล</span></button>`:''}
     </div></div>
+   ${(()=>{const ams=[...new Set(live.map(r=>r.am).filter(Boolean))].sort((x,y)=>c(r=>r.am===y)-c(r=>r.am===x));if(ams.length<2)return '';
+     return `<div class="area"><h2>${a==='bk'?'แยกตามเขต':'แยกตามอำเภอ'}</h2><div class="cards am-cards">${ams.map(m=>`<button type="button" class="card" style="--c:var(--line)" data-am="${esc(m)}"><b>${esc(m)}</b><span class="n">${c(r=>r.am===m)}</span><span class="s">บ้าน ${c(r=>r.am===m&&r.kind==='h')} · ที่ดิน ${c(r=>r.am===m&&r.kind==='l')}${a==='bk'?' · ห้องชุด '+c(r=>r.am===m&&r.kind==='c'):''}</span></button>`).join('')}</div></div>`})()}
    ${live.length?`<div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">⭐ ทรัพย์ของฉันที่${A.short} (${mine.length})</h2><p class="sync sub"></p>${mine.length?tableOf(mine):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่</p>'}</div>`:''}
    ${lastSold?`<div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">💰 ขายได้ล่าสุด นัด ${fd(lastSold)}</h2>${soldTable(H.sold.filter(s=>s[0]===lastSold))}</div>`:''}
   </div>`;
   $('sHome').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  $('sHome').querySelectorAll('[data-am]').forEach(b=>b.onclick=()=>{PRE_AM=b.dataset.am;go(a+'-all')});
   bindRows($('sHome')); setSync();
 }
+let PRE_AM='';
 function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำดับ</th><th>ประเภท</th><th>คดี</th><th>โฉนด</th><th class="n">ราคาประเมิน</th><th class="n">ขายได้</th><th class="n">%</th></tr></thead><tbody>`+
   g.map(s=>`<tr><td>${esc(s[2])}</td><td>${esc(s[5])}</td><td>${esc(s[3])}</td><td>${esc(s[4])}</td><td class="n">${fm(s[6])}</td><td class="n"><b>${fm(s[7])}</b></td><td class="n">${s[6]?Math.round(s[7]/s[6]*100):'-'}</td></tr>`).join('')+'</tbody></table></div>'}
 
@@ -370,6 +375,7 @@ function buildRail(){
   chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู']],'mine');
   const fillTb=()=>{const L=live.filter(r=>!F.am||r.am===F.am);const tbs=[...new Set(L.map(r=>r.tbx))].sort();$('fTb').innerHTML=`<option value="">ทั้งหมด</option>`+tbs.map(t=>`<option value="${esc(t)}">${esc(F.am?t.split(' · ').pop():t)} (${L.filter(r=>r.tbx===t).length})</option>`).join('')};
   fillTb();
+  if($('fAm')){$('fAm').value=F.am;fillTb();}
   if($('fAm'))$('fAm').onchange=e=>{F.am=e.target.value;F.tb='';fillTb();renderRoute(true)};
   $('fTb').onchange=e=>{F.tb=e.target.value;renderRoute(true)};
   $('fMax').oninput=e=>{F.max=+e.target.value||0;renderRoute(false)};

@@ -356,6 +356,7 @@ function buildRail(){
    <div class="f legend"><b>สีหมุด</b>
      ${!R.type||R.type==='h'?lg('--house','บ้าน'):''}${!R.type||R.type==='l'?lg('--land','ที่ดินว่างเปล่า'):''}${R.type==='c'?lg('--condo','ห้องชุด (ตำแหน่งอาคาร)'):''}
      ${lg('--debt','ติดภาระ (จำนองติดไป)')}${R.area==='bk'?lg('--mut','ตำแหน่งประมาณ',true):''}
+     ${lg('--mut','ที่เฝ้าดูไว้แต่ปิดแล้ว (ขาย/งด/ถอน)')}
      <div style="color:var(--mut)">ขอบแดง = สนใจประมูล · ขอบส้ม = เฝ้าดู · มีจุดกลาง = ทรัพย์ใหม่</div></div>
    <div class="count" id="cnt"></div>
    <div class="note">${A.note}</div>`;
@@ -394,6 +395,9 @@ function drawBase(area){
 const colorOf=r=>r.debtOn?'--debt':r.condo?'--condo':r.house?'--house':'--land';
 function drawPins(fit){
   pinLayer.clearLayers(); const list=liveRows().filter(pass); const pts=[];
+  // ทรัพย์ที่เฝ้าดู/สนใจแต่ปิดแล้ว (ขาย/งด/ถอน) แสดงเป็นหมุดสีเทา จะได้ไม่หายไปเฉยๆ
+  const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&kindOf(r)&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)).forEach(r=>{
+    r.mk=L.circleMarker([r.lat,r.lon],{radius:7,color:css('--surface'),weight:2,fillColor:css('--mut'),fillOpacity:.7}).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
   list.filter(r=>r.lat).forEach(r=>{const m=kindOf(r);
     r.mk=L.circleMarker([r.lat,r.lon],{radius:m?10:8,color:m==='bid'?css('--debt'):m==='watch'?css('--nobid'):css('--surface'),weight:m?4:2,
       fillColor:css(colorOf(r)),fillOpacity:r.approx?.55:.92,dashArray:r.approx&&!m?'3 3':null}).bindPopup(()=>pop(r),{maxWidth:300,autoPanPadding:[20,20]}).addTo(pinLayer);
@@ -411,7 +415,7 @@ function pop(r){
   const loc=r.am?`เขต${esc(r.am)} แขวง${esc(r.tb)}`:`ต.${esc(r.tb)}`;
   const gm=r.approx?`https://www.google.com/maps/search/${encodeURIComponent((r.ad&&r.ad!=='-'?r.ad+' ':'')+'แขวง'+r.tb+' เขต'+r.am+' กรุงเทพมหานคร')}`:`https://www.google.com/maps?q=${r.lat},${r.lon}`;
   return `<div class="pop"><h3>ลำดับ ${esc(r.seq)} · ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดินเปล่า'}</h3>
-  <div class="round"><span class="tag t-lot">${esc(r.lotTxt)}</span>${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}</div>
+  <div class="round"><span class="tag t-lot">${esc(r.lotTxt)}</span>${r.red?`<span class="tag t-wd">ปิดแล้ว: ${esc(st(r.s.find(c=>c&&c!==3)||r.lastCode)[0])}</span>`:''}${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}</div>
   ${PUBLIC&&r.pic?`<a href="img/${esc(r.pic)}" target="_blank" rel="noopener"><img class="ph" src="img/${esc(r.pic)}" alt="ภาพทรัพย์ลำดับ ${esc(r.seq)}" loading="lazy" onerror="this.src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}';this.onerror=()=>this.remove()"></a>`:''}
   ${r.approx?'<div class="approx">📍 ตำแหน่งประมาณกลางแขวง ยังไม่ใช่แปลงจริง</div>':''}
   ${r.debtOn?`<div class="warn">⚠️ จำนองติดไป: ผู้ซื้อต้องรับหนี้ ${fm(r.db)} บ.${r.dbn?' ('+esc(r.dbn)+')':''}<br><span style="font-weight:400">ต้นทุนจริง ≈ ราคาประมูล ${fm(r.sp)} + หนี้ ${fm(r.db)} = <b>${fm(r.cost)} บ.</b> (${r.pr?Math.round(r.cost/r.pr*100):'-'}% ของราคาประเมิน)</span></div>`:''}

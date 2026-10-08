@@ -223,8 +223,8 @@ function addHist(r,H){
 }
 async function load(area){
   if(DATA[area]) return;
-  const [d,b,h]=await Promise.all([fetch(AREAS[area].data).then(r=>r.json()),fetch(AREAS[area].base).then(r=>r.json()),
-    AREAS[area].hist?fetch(AREAS[area].hist).then(r=>r.json()).catch(()=>null):null]);
+  const [d,b,h]=await Promise.all([fetch(AREAS[area].data,{cache:'no-cache'}).then(r=>r.json()),fetch(AREAS[area].base,{cache:'no-cache'}).then(r=>r.json()),
+    AREAS[area].hist?fetch(AREAS[area].hist,{cache:'no-cache'}).then(r=>r.json()).catch(()=>null):null]);
   HIST[area]=h||{h:{},sold:[],stat:{}}; BASE[area]=b; DATA[area]=d.map(r=>addHist(derive(r),HIST[area]));
 }
 
@@ -463,7 +463,7 @@ function bars(rows,opt={}){ // rows: [label, value, note?]
   const max=Math.max(1,...rows.map(r=>r[1])), tot=rows.reduce((a,r)=>a+r[1],0);
   return `<div class="bars">${rows.map(([l,v,n])=>`<div class="br" title="${esc(l)}: ${v}${opt.unit||''}${tot&&opt.pct?' ('+Math.round(v/tot*100)+'%)':''}"><span class="bl">${esc(l)}</span><span class="bt"><span class="bf" style="width:${(v/max*100).toFixed(1)}%"></span></span><span class="bv">${fm(v)}${opt.unit||''}${tot&&opt.pct?` <small>${Math.round(v/tot*100)}%</small>`:''}${n?` <small>${esc(n)}</small>`:''}</span></div>`).join('')}</div>`}
 async function renderAnalysis(area){
-  if(!ANA[area]){try{ANA[area]=await fetch(AREAS[area].ana).then(r=>r.json())}catch(e){ANA[area]=null}}
+  if(!ANA[area]){try{ANA[area]=await fetch(AREAS[area].ana,{cache:'no-cache'}).then(r=>r.json())}catch(e){ANA[area]=null}}
   const ANAx=ANA[area];
   if(!ANAx){$('upd').innerHTML='<p class="empty">ยังไม่มีข้อมูลวิเคราะห์</p>';return}
   const A=ANAx, H=A.h, Ld=A.l, pc=x=>x==null?'-':Math.round(x*100)+'%';

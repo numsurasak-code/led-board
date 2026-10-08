@@ -174,7 +174,7 @@ const AREAS={
       data:'data_pk.json',base:'base_pk.json',hist:'hist_pk.json',center:[16.37,102.13],zoom:11,
       sched:'ประมูลทุกวันพุธ ณ สนง.บังคับคดีจังหวัดชัยภูมิ สาขาภูเขียว · ตรงวันหยุดจะเลื่อน',
       note:'หมุดทึบ = พิกัดแปลงจริงจาก LandsMaps · หมุดเส้นประ = ตำแหน่งประมาณกลางตำบล (ยังไม่ได้ค้นพิกัดจริง)'},
-  bk:{name:'แพ่งกรุงเทพมหานคร 1',short:'แพ่ง กทม.1',pid:'034',live:'https://live.led.go.th/?branch=center',types:['h','l','c'],office:'สำนักงานบังคับคดีแพ่งกรุงเทพมหานคร 1',data:'data_bk.json',base:'base_bk.json',hist:'hist_bk.json',center:[13.80,100.58],zoom:11,
+  bk:{name:'แพ่งกรุงเทพมหานคร 1',short:'แพ่ง กทม.1',pid:'034',live:'https://live.led.go.th/?branch=center',types:['h','l','c'],office:'สำนักงานบังคับคดีแพ่งกรุงเทพมหานคร 1',data:'data_bk.json',base:'base_bk.json',stat:'ราคาขายได้จริงย้อนหลัง 6 เดือน (เม.ย.–ต.ค. 69) เทียบราคาประเมิน: บ้านราว 140% (สู้ราคากันมาก) · ห้องชุดราว 85% · ที่ดินราว 100%',center:[13.80,100.58],zoom:11,
       sched:'ประมูลทุกวันศุกร์ 09.00 น. ณ อาคารอสีติพรรษ กรมบังคับคดี บางขุนนนท์ · ตรงวันหยุดจะเลื่อน เช่น 22 ต.ค. 69 เป็นวันพฤหัส',
       note:'หมุดทึบ = พิกัดแปลงจริงจาก LandsMaps · หมุดเส้นประ = ตำแหน่งประมาณกลางแขวง'}
 };
@@ -324,6 +324,7 @@ function renderHub(a){
   const up=live.filter(r=>r.next===nd).sort((x,y)=>parseInt(x.seq)-parseInt(y.seq));
   $('sHome').innerHTML=`<div class="home-wrap">
    <div class="area"><h2>${A.office}</h2><p class="meta">${A.sched}</p>
+    ${A.stat?`<p class="note">📈 ${A.stat}</p>`:''}
     ${A.live?`<p><a class="btn live" href="${A.live}" target="_blank" rel="noopener">🔴 ดูถ่ายทอดสดการประมูล</a> <small>ถ่ายทอดเฉพาะวันและเวลาที่มีประมูล${a==='cy'?' (ชัยภูมิวันอังคาร ตั้งแต่ 10.00 น.)':' (ส่วนกลาง วันศุกร์ ตั้งแต่ 09.00 น.)'}</small></p>`:`<p><small>สาขานี้ยังไม่มีช่องถ่ายทอดสดบน live.led.go.th</small></p>`}
     ${live.length?'':`<p class="note">${A.note}</p>`}
     <div class="cards">

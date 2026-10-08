@@ -1,0 +1,540 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><script>window.PUBLIC=true</script></head><body><title>บอร์ดทรัพย์ขายทอดตลาด</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&display=swap">
+<style>
+.leaflet-image-layer,.leaflet-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane,.leaflet-pane>canvas,.leaflet-pane>svg,.leaflet-tile,.leaflet-tile-container,.leaflet-zoom-box{position:absolute;left:0;top:0}.leaflet-container{overflow:hidden}.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-tile{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-user-drag:none}.leaflet-tile::selection{background:0 0}.leaflet-safari .leaflet-tile{image-rendering:-webkit-optimize-contrast}.leaflet-safari .leaflet-tile-container{width:1600px;height:1600px;-webkit-transform-origin:0 0}.leaflet-marker-icon,.leaflet-marker-shadow{display:block}.leaflet-container .leaflet-overlay-pane svg{max-width:none!important;max-height:none!important}.leaflet-container .leaflet-marker-pane img,.leaflet-container .leaflet-shadow-pane img,.leaflet-container .leaflet-tile,.leaflet-container .leaflet-tile-pane img,.leaflet-container img.leaflet-image-layer{max-width:none!important;max-height:none!important;width:auto;padding:0}.leaflet-container img.leaflet-tile{mix-blend-mode:plus-lighter}.leaflet-container.leaflet-touch-zoom{-ms-touch-action:pan-x pan-y;touch-action:pan-x pan-y}.leaflet-container.leaflet-touch-drag{-ms-touch-action:pinch-zoom;touch-action:none;touch-action:pinch-zoom}.leaflet-container.leaflet-touch-drag.leaflet-touch-zoom{-ms-touch-action:none;touch-action:none}.leaflet-container{-webkit-tap-highlight-color:transparent}.leaflet-container a{-webkit-tap-highlight-color:rgba(51,181,229,.4)}.leaflet-tile{filter:inherit;visibility:hidden}.leaflet-tile-loaded{visibility:inherit}.leaflet-zoom-box{width:0;height:0;-moz-box-sizing:border-box;box-sizing:border-box;z-index:800}.leaflet-overlay-pane svg{-moz-user-select:none}.leaflet-pane{z-index:400}.leaflet-tile-pane{z-index:200}.leaflet-overlay-pane{z-index:400}.leaflet-shadow-pane{z-index:500}.leaflet-marker-pane{z-index:600}.leaflet-tooltip-pane{z-index:650}.leaflet-popup-pane{z-index:700}.leaflet-map-pane canvas{z-index:100}.leaflet-map-pane svg{z-index:200}.leaflet-vml-shape{width:1px;height:1px}.lvml{behavior:url(#default#VML);display:inline-block;position:absolute}.leaflet-control{position:relative;z-index:800;pointer-events:visiblePainted;pointer-events:auto}.leaflet-bottom,.leaflet-top{position:absolute;z-index:1000;pointer-events:none}.leaflet-top{top:0}.leaflet-right{right:0}.leaflet-bottom{bottom:0}.leaflet-left{left:0}.leaflet-control{float:left;clear:both}.leaflet-right .leaflet-control{float:right}.leaflet-top .leaflet-control{margin-top:10px}.leaflet-bottom .leaflet-control{margin-bottom:10px}.leaflet-left .leaflet-control{margin-left:10px}.leaflet-right .leaflet-control{margin-right:10px}.leaflet-fade-anim .leaflet-popup{opacity:0;-webkit-transition:opacity .2s linear;-moz-transition:opacity .2s linear;transition:opacity .2s linear}.leaflet-fade-anim .leaflet-map-pane .leaflet-popup{opacity:1}.leaflet-zoom-animated{-webkit-transform-origin:0 0;-ms-transform-origin:0 0;transform-origin:0 0}svg.leaflet-zoom-animated{will-change:transform}.leaflet-zoom-anim .leaflet-zoom-animated{-webkit-transition:-webkit-transform .25s cubic-bezier(0,0,.25,1);-moz-transition:-moz-transform .25s cubic-bezier(0,0,.25,1);transition:transform .25s cubic-bezier(0,0,.25,1)}.leaflet-pan-anim .leaflet-tile,.leaflet-zoom-anim .leaflet-tile{-webkit-transition:none;-moz-transition:none;transition:none}.leaflet-zoom-anim .leaflet-zoom-hide{visibility:hidden}.leaflet-interactive{cursor:pointer}.leaflet-grab{cursor:-webkit-grab;cursor:-moz-grab;cursor:grab}.leaflet-crosshair,.leaflet-crosshair .leaflet-interactive{cursor:crosshair}.leaflet-control,.leaflet-popup-pane{cursor:auto}.leaflet-dragging .leaflet-grab,.leaflet-dragging .leaflet-grab .leaflet-interactive,.leaflet-dragging .leaflet-marker-draggable{cursor:move;cursor:-webkit-grabbing;cursor:-moz-grabbing;cursor:grabbing}.leaflet-image-layer,.leaflet-marker-icon,.leaflet-marker-shadow,.leaflet-pane>svg path,.leaflet-tile-container{pointer-events:none}.leaflet-image-layer.leaflet-interactive,.leaflet-marker-icon.leaflet-interactive,.leaflet-pane>svg path.leaflet-interactive,svg.leaflet-image-layer.leaflet-interactive path{pointer-events:visiblePainted;pointer-events:auto}.leaflet-container{background:#ddd;outline-offset:1px}.leaflet-container a{color:#0078a8}.leaflet-zoom-box{border:2px dotted #38f;background:rgba(255,255,255,.5)}.leaflet-container{font-family:"Helvetica Neue",Arial,Helvetica,sans-serif;font-size:12px;font-size:.75rem;line-height:1.5}.leaflet-bar{box-shadow:0 1px 5px rgba(0,0,0,.65);border-radius:4px}.leaflet-bar a{background-color:#fff;border-bottom:1px solid #ccc;width:26px;height:26px;line-height:26px;display:block;text-align:center;text-decoration:none;color:#000}.leaflet-bar a,.leaflet-control-layers-toggle{background-position:50% 50%;background-repeat:no-repeat;display:block}.leaflet-bar a:focus,.leaflet-bar a:hover{background-color:#f4f4f4}.leaflet-bar a:first-child{border-top-left-radius:4px;border-top-right-radius:4px}.leaflet-bar a:last-child{border-bottom-left-radius:4px;border-bottom-right-radius:4px;border-bottom:none}.leaflet-bar a.leaflet-disabled{cursor:default;background-color:#f4f4f4;color:#bbb}.leaflet-touch .leaflet-bar a{width:30px;height:30px;line-height:30px}.leaflet-touch .leaflet-bar a:first-child{border-top-left-radius:2px;border-top-right-radius:2px}.leaflet-touch .leaflet-bar a:last-child{border-bottom-left-radius:2px;border-bottom-right-radius:2px}.leaflet-control-zoom-in,.leaflet-control-zoom-out{font:bold 18px 'Lucida Console',Monaco,monospace;text-indent:1px}.leaflet-touch .leaflet-control-zoom-in,.leaflet-touch .leaflet-control-zoom-out{font-size:22px}.leaflet-control-layers{box-shadow:0 1px 5px rgba(0,0,0,.4);background:#fff;border-radius:5px}.leaflet-control-layers-toggle{background-image:url(images/layers.png);width:36px;height:36px}.leaflet-retina .leaflet-control-layers-toggle{background-image:url(images/layers-2x.png);background-size:26px 26px}.leaflet-touch .leaflet-control-layers-toggle{width:44px;height:44px}.leaflet-control-layers .leaflet-control-layers-list,.leaflet-control-layers-expanded .leaflet-control-layers-toggle{display:none}.leaflet-control-layers-expanded .leaflet-control-layers-list{display:block;position:relative}.leaflet-control-layers-expanded{padding:6px 10px 6px 6px;color:#333;background:#fff}.leaflet-control-layers-scrollbar{overflow-y:scroll;overflow-x:hidden;padding-right:5px}.leaflet-control-layers-selector{margin-top:2px;position:relative;top:1px}.leaflet-control-layers label{display:block;font-size:13px;font-size:1.08333em}.leaflet-control-layers-separator{height:0;border-top:1px solid #ddd;margin:5px -10px 5px -6px}.leaflet-default-icon-path{background-image:url(images/marker-icon.png)}.leaflet-container .leaflet-control-attribution{background:#fff;background:rgba(255,255,255,.8);margin:0}.leaflet-control-attribution,.leaflet-control-scale-line{padding:0 5px;color:#333;line-height:1.4}.leaflet-control-attribution a{text-decoration:none}.leaflet-control-attribution a:focus,.leaflet-control-attribution a:hover{text-decoration:underline}.leaflet-attribution-flag{display:inline!important;vertical-align:baseline!important;width:1em;height:.6669em}.leaflet-left .leaflet-control-scale{margin-left:5px}.leaflet-bottom .leaflet-control-scale{margin-bottom:5px}.leaflet-control-scale-line{border:2px solid #777;border-top:none;line-height:1.1;padding:2px 5px 1px;white-space:nowrap;-moz-box-sizing:border-box;box-sizing:border-box;background:rgba(255,255,255,.8);text-shadow:1px 1px #fff}.leaflet-control-scale-line:not(:first-child){border-top:2px solid #777;border-bottom:none;margin-top:-2px}.leaflet-control-scale-line:not(:first-child):not(:last-child){border-bottom:2px solid #777}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-attribution,.leaflet-touch .leaflet-control-layers{box-shadow:none}.leaflet-touch .leaflet-bar,.leaflet-touch .leaflet-control-layers{border:2px solid rgba(0,0,0,.2);background-clip:padding-box}.leaflet-popup{position:absolute;text-align:center;margin-bottom:20px}.leaflet-popup-content-wrapper{padding:1px;text-align:left;border-radius:12px}.leaflet-popup-content{margin:13px 24px 13px 20px;line-height:1.3;font-size:13px;font-size:1.08333em;min-height:1px}.leaflet-popup-content p{margin:17px 0;margin:1.3em 0}.leaflet-popup-tip-container{width:40px;height:20px;position:absolute;left:50%;margin-top:-1px;margin-left:-20px;overflow:hidden;pointer-events:none}.leaflet-popup-tip{width:17px;height:17px;padding:1px;margin:-10px auto 0;pointer-events:auto;-webkit-transform:rotate(45deg);-moz-transform:rotate(45deg);-ms-transform:rotate(45deg);transform:rotate(45deg)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:#fff;color:#333;box-shadow:0 3px 14px rgba(0,0,0,.4)}.leaflet-container a.leaflet-popup-close-button{position:absolute;top:0;right:0;border:none;text-align:center;width:24px;height:24px;font:16px/24px Tahoma,Verdana,sans-serif;color:#757575;text-decoration:none;background:0 0}.leaflet-container a.leaflet-popup-close-button:focus,.leaflet-container a.leaflet-popup-close-button:hover{color:#585858}.leaflet-popup-scrolled{overflow:auto}.leaflet-oldie .leaflet-popup-content-wrapper{-ms-zoom:1}.leaflet-oldie .leaflet-popup-tip{width:24px;margin:0 auto}.leaflet-oldie .leaflet-control-layers,.leaflet-oldie .leaflet-control-zoom,.leaflet-oldie .leaflet-popup-content-wrapper,.leaflet-oldie .leaflet-popup-tip{border:1px solid #999}.leaflet-div-icon{background:#fff;border:1px solid #666}.leaflet-tooltip{position:absolute;padding:6px;background-color:#fff;border:1px solid #fff;border-radius:3px;color:#222;white-space:nowrap;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none;pointer-events:none;box-shadow:0 1px 3px rgba(0,0,0,.4)}.leaflet-tooltip.leaflet-interactive{cursor:pointer;pointer-events:auto}.leaflet-tooltip-bottom:before,.leaflet-tooltip-left:before,.leaflet-tooltip-right:before,.leaflet-tooltip-top:before{position:absolute;pointer-events:none;border:6px solid transparent;background:0 0;content:""}.leaflet-tooltip-bottom{margin-top:6px}.leaflet-tooltip-top{margin-top:-6px}.leaflet-tooltip-bottom:before,.leaflet-tooltip-top:before{left:50%;margin-left:-6px}.leaflet-tooltip-top:before{bottom:0;margin-bottom:-12px;border-top-color:#fff}.leaflet-tooltip-bottom:before{top:0;margin-top:-12px;margin-left:-6px;border-bottom-color:#fff}.leaflet-tooltip-left{margin-left:-6px}.leaflet-tooltip-right{margin-left:6px}.leaflet-tooltip-left:before,.leaflet-tooltip-right:before{top:50%;margin-top:-6px}.leaflet-tooltip-left:before{right:0;margin-right:-12px;border-left-color:#fff}.leaflet-tooltip-right:before{left:0;margin-left:-12px;border-right-color:#fff}@media print{.leaflet-control{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
+/* Layout: top app bar + (filter rail | map) on wide screens, stacked on phones. One map instance shared by every screen. */
+:root{
+  --bg:#f3f4f2;--surface:#ffffff;--surface2:#eef0ec;--ink:#1c2321;--mut:#5f6b66;--line:#dadfda;
+  --brand:#8f1d3a;--brand-ink:#ffffff;--focus:#2f6fd6;
+  --house:#2463c9;--land:#2f8a4a;--condo:#7a4bc4;--debt:#d23a2a;
+  --nobid:#a86a00;--nobid-bg:#fbf0d9;--sold-bg:#e6e8e6;--stop-bg:#ece6f7;--stop:#5b3fa0;--wd-bg:#fbe3df;--wd:#9c2a1d;--pend-bg:#e1eefa;--pend:#1f5f97;
+  --mapbg:#eceee9;--road1:#e0973a;--road2:#e8b86a;--road3:#c9cdc6;--road4:#d8dbd5;--bound:#9aa59f;
+  --f:"IBM Plex Sans Thai",system-ui,"Segoe UI",Tahoma,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141917;--surface:#1c2220;--surface2:#232b28;--ink:#e6ebe8;--mut:#9aa7a1;--line:#323c38;
+  --brand:#c2486a;--brand-ink:#ffffff;--focus:#7aa7f0;
+  --house:#5b93e8;--land:#5bb877;--condo:#a685e6;--debt:#ef6b5c;
+  --nobid:#e3b25a;--nobid-bg:#3a2f18;--sold-bg:#2c3330;--stop-bg:#2e2742;--stop:#c4b2f0;--wd-bg:#41231f;--wd:#f2a69c;--pend-bg:#1d3145;--pend:#9cc6ee;
+  --mapbg:#1a201e;--road1:#b9772c;--road2:#8f7448;--road3:#46504c;--road4:#38413d;--bound:#5c6964;color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141917;--surface:#1c2220;--surface2:#232b28;--ink:#e6ebe8;--mut:#9aa7a1;--line:#323c38;
+  --brand:#c2486a;--brand-ink:#ffffff;--focus:#7aa7f0;
+  --house:#5b93e8;--land:#5bb877;--condo:#a685e6;--debt:#ef6b5c;
+  --nobid:#e3b25a;--nobid-bg:#3a2f18;--sold-bg:#2c3330;--stop-bg:#2e2742;--stop:#c4b2f0;--wd-bg:#41231f;--wd:#f2a69c;--pend-bg:#1d3145;--pend:#9cc6ee;
+  --mapbg:#1a201e;--road1:#b9772c;--road2:#8f7448;--road3:#46504c;--road4:#38413d;--bound:#5c6964;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--f);margin:0}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+#app{display:flex;flex-direction:column;height:100%}
+.bar{background:var(--brand);color:var(--brand-ink);display:flex;align-items:center;gap:10px;padding:8px 16px;flex-wrap:wrap}
+.bar .home{background:transparent;border:1px solid #ffffff55;color:var(--brand-ink);border-radius:8px;padding:4px 10px;cursor:pointer}
+.bar h1{font-size:16px;margin:0;font-weight:600;flex:1;min-width:0;text-wrap:balance}
+.bar .sched{font-size:12px;opacity:.9;width:100%}
+.tabs{display:flex;gap:4px;padding:8px 16px;background:var(--surface);border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs button{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:5px 14px;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.badge{display:inline-block;min-width:18px;padding:0 6px;border-radius:9px;background:var(--debt);color:#fff;font-size:11px;text-align:center;margin-left:4px}
+main{flex:1;min-height:0;position:relative}
+.screen{position:absolute;inset:0;overflow:auto}
+/* home */
+.home-wrap{max-width:980px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:22px}
+.area h2{font-size:15px;margin:0 0 2px}
+.area .meta{color:var(--mut);font-size:13px;margin:0 0 10px}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
+.card{display:grid;gap:4px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;border-top:4px solid var(--c)}
+.card:hover{border-color:var(--c)}
+.card b{font-size:15px}
+.card .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.1}
+.card .s{font-size:12px;color:var(--mut)}
+.mine-all{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px}
+.foot{color:var(--mut);font-size:12px;line-height:1.6}
+/* map screen */
+.mapscreen{display:flex}
+.rail{width:280px;flex:none;overflow:auto;background:var(--surface);border-right:1px solid var(--line);padding:12px 16px;display:grid;gap:12px;align-content:start}
+.f b{display:block;font-size:12px;color:var(--mut);font-weight:600;margin-bottom:4px;letter-spacing:.02em}
+.chips{display:flex;flex-wrap:wrap;gap:4px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:3px 10px;cursor:pointer;font-size:13px}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--bg)}
+select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface)}
+.legend div{display:flex;align-items:center;gap:6px;font-size:13px}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block;flex:none;border:2px solid var(--surface);box-shadow:0 0 0 1px var(--line)}
+.dot.dash{border:2px dashed var(--mut)}
+.count{font-size:13px;color:var(--mut)}
+.note{font-size:12px;color:var(--mut);background:var(--surface2);border-radius:8px;padding:8px 10px;line-height:1.55}
+#map{flex:1;min-width:0;background:var(--mapbg)}
+.leaflet-container{background:var(--mapbg);font:inherit}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--surface);color:var(--ink)}
+.leaflet-bar a{background:var(--surface);color:var(--ink);border-color:var(--line)}
+.roadlbl{background:transparent;border:0;box-shadow:none;color:var(--mut);font-size:11px;font-weight:600}
+.roadlbl::before{display:none}
+/* popup */
+.pop{width:270px;font-size:13px;line-height:1.5}
+.pop h3{margin:0 0 6px;font-size:15px}
+.pop .kv{display:grid;grid-template-columns:auto 1fr;gap:1px 10px}
+.pop .kv span:nth-child(odd){color:var(--mut);white-space:nowrap}
+.pop .kv span{font-variant-numeric:tabular-nums}
+.warn{background:var(--wd-bg);color:var(--wd);padding:5px 8px;border-radius:6px;margin:6px 0;font-weight:600}
+.approx{background:var(--nobid-bg);color:var(--nobid);padding:5px 8px;border-radius:6px;margin:6px 0}
+.hist{display:flex;gap:3px;flex-wrap:wrap;margin-top:6px}
+.tag{display:inline-block;padding:1px 7px;border-radius:999px;font-size:12px;white-space:nowrap}
+.t-sold{background:var(--sold-bg);color:var(--ink)}.t-nobid{background:var(--nobid-bg);color:var(--nobid)}.t-stop{background:var(--stop-bg);color:var(--stop)}.t-wd{background:var(--wd-bg);color:var(--wd)}.t-pend{background:var(--pend-bg);color:var(--pend)}
+.ph{width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin:2px 0 6px;background:var(--surface2);display:block}
+.round{display:flex;gap:4px;flex-wrap:wrap;margin:-2px 0 6px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:2px}
+.kpi b{font-size:26px;font-variant-numeric:tabular-nums;line-height:1.15}.kpi span{font-size:12px;color:var(--mut)}
+.ana{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 16px;display:grid;gap:8px}
+.ana h3{margin:0;font-size:15px}.ana h4{margin:0 0 4px;font-size:13px;font-weight:600}.ana .tbl{border:0}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}.two>div{min-width:0}
+.bars{display:grid;gap:4px}.br{display:grid;grid-template-columns:minmax(90px,38%) 1fr auto;gap:8px;align-items:center;font-size:12px}
+.bl{color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bt{height:12px;background:var(--surface2);border-radius:0 4px 4px 0}
+.bf{display:block;height:100%;background:var(--house);border-radius:0 4px 4px 0;min-width:2px}.bv{font-variant-numeric:tabular-nums;white-space:nowrap}
+.tips{margin:0;padding-left:20px;display:grid;gap:4px}
+.card.office b{font-size:14px}
+.t-relist{background:var(--stop-bg);color:var(--stop)}.t-old{background:var(--surface2);color:var(--mut);border:1px solid var(--line)}
+.prev{border:0;padding:0;margin-top:6px;background:transparent}.prev summary{font-weight:500;font-size:12px;color:var(--mut)}.prev div{font-size:12px}
+.t-new{background:var(--land);color:#fff}.t-round{background:var(--surface2);color:var(--ink)}
+.notelbl{display:block;font-size:12px;color:var(--mut);margin-top:8px}
+.note-in{width:100%;margin-top:2px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit;font-size:13px;resize:vertical}
+.notesaved{font-size:11px;color:var(--mut)}
+.btns{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:4px 10px;cursor:pointer;font-size:12px;color:var(--ink);text-decoration:none}
+.btn.bid[aria-pressed="true"]{background:var(--debt);border-color:var(--debt);color:#fff}
+.btn.watch[aria-pressed="true"]{background:var(--nobid);border-color:var(--nobid);color:#fff}
+/* lists */
+.wrap{max-width:1100px;margin:0 auto;padding:16px 16px 40px;display:grid;gap:12px}
+.wrap h2{font-size:16px;margin:0}
+.sub{color:var(--mut);font-size:13px;margin:0}
+.tbl{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:720px}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:12px;color:var(--mut);font-weight:600;background:var(--surface2)}
+td.n{text-align:right;font-variant-numeric:tabular-nums}
+tbody tr{cursor:pointer}tbody tr:hover{background:var(--surface2)}
+small{color:var(--mut)}
+details{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 14px}
+summary{cursor:pointer;font-weight:600}
+details .tbl{border:0;margin-top:8px}
+.empty{color:var(--mut);padding:10px 0}
+.sync{font-size:12px;color:var(--mut)}
+@media (max-width:767px){
+  .mapscreen{flex-direction:column}
+  .rail{width:auto;max-height:46%;border-right:0;border-bottom:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<div id="app">
+  <div class="bar">
+    <button class="home" id="btnHome" type="button" aria-label="กลับเมนูหลัก">☰ เมนู</button>
+    <button class="home" id="btnHub" type="button" hidden></button>
+    <h1 id="title">บอร์ดทรัพย์ขายทอดตลาด</h1>
+    <div class="sched" id="sched"></div>
+  </div>
+  <div class="tabs" id="tabs" role="tablist" hidden>
+    <button type="button" role="tab" data-v="map" aria-selected="true">แผนที่</button>
+    <button type="button" role="tab" data-v="list">รายการ</button>
+    <button type="button" role="tab" data-v="mine">⭐ ของฉัน <span class="badge" id="bMine">0</span></button>
+    <button type="button" role="tab" data-v="upd">🔔 อัปเดตงวดที่แล้ว</button>
+  </div>
+  <main>
+    <section class="screen" id="sHome"></section>
+    <section class="screen mapscreen" id="sMap" hidden>
+      <aside class="rail" id="rail"></aside>
+      <div id="map" role="application" aria-label="แผนที่ทรัพย์"></div>
+    </section>
+    <section class="screen" id="sList" hidden><div class="wrap" id="list"></div></section>
+    <section class="screen" id="sMine" hidden><div class="wrap" id="mine"></div></section>
+    <section class="screen" id="sUpd" hidden><div class="wrap" id="upd"></div></section>
+  </main>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+const PUBLIC=!!window.PUBLIC;
+const ARCH=window.ARCH||'';  // ลิงก์คลังรูปบน GitHub (ใส่หลังเปิด Pages)
+const TODAY='25691008';
+const AREAS={
+  cy:{name:'อ.เมืองชัยภูมิ',office:'สำนักงานบังคับคดีจังหวัดชัยภูมิ',short:'ชัยภูมิ',pid:'306',ana:'analysis_cy.json',types:['h','l'],data:'data_cy.json',base:'base_cy.json',hist:'hist_cy.json',center:[15.81,102.03],zoom:12,
+      sched:'ประมูลทุกวันอังคาร 10.00 น. ณ สนง.บังคับคดีจังหวัดชัยภูมิ (ถ.อบจ.สาย 1) · ตรงวันหยุดจะเลื่อน เช่น 12 ต.ค. 69 เป็นวันจันทร์',
+      note:'หมุดทึบ = พิกัดแปลงจริงจาก LandsMaps (ตอนนี้ 27 แปลง) · ที่เหลือดูได้ในแท็บ "รายการ"'},
+  pk:{name:'ชัยภูมิ สาขาภูเขียว',short:'ภูเขียว',office:'สำนักงานบังคับคดีจังหวัดชัยภูมิ สาขาภูเขียว',pid:'310',ana:'analysis_pk.json',types:['h','l'],
+      data:'data_pk.json',base:'base_pk.json',hist:'hist_pk.json',center:[16.37,102.13],zoom:11,
+      sched:'ประมูลทุกวันพุธ ณ สนง.บังคับคดีจังหวัดชัยภูมิ สาขาภูเขียว · ตรงวันหยุดจะเลื่อน',
+      note:'ยังไม่ได้ดึงรายการทรัพย์ของภูเขียว (ต้องกรอกรหัสยืนยันที่เว็บกรมบังคับคดี) · ตอนนี้มีผลการขายย้อนหลังและบทวิเคราะห์'},
+  bk:{name:'แพ่งกรุงเทพมหานคร 1',short:'แพ่ง กทม.1',pid:'034',types:['h','l','c'],office:'สำนักงานบังคับคดีแพ่งกรุงเทพมหานคร 1',data:'data_bk.json',base:'base_bk.json',center:[13.80,100.58],zoom:11,
+      sched:'ประมูลทุกวันศุกร์ 09.00 น. ณ อาคารอสีติพรรษ กรมบังคับคดี บางขุนนนท์ · ตรงวันหยุดจะเลื่อน เช่น 22 ต.ค. 69 เป็นวันพฤหัส',
+      note:'ตัวอย่าง 20 รายการ/ประเภท · หมุดเส้นประ = ตำแหน่งประมาณกลางแขวง ยังไม่ใช่แปลงจริง'}
+};
+const KN={h:'บ้าน',l:'ที่ดินว่างเปล่า',c:'ห้องชุด'};
+const ROUTES={};
+for(const [a,A] of Object.entries(AREAS)){
+  ROUTES['o-'+a]={area:a,title:A.office,hub:true};
+  ROUTES[a+'-all']={area:a,title:A.short+' · ทุกประเภท',type:''};
+  A.types.forEach(k=>ROUTES[a+'-'+k]={area:a,title:A.short+' · '+KN[k],type:k});
+  if(A.ana) ROUTES[a+'-ana']={area:a,title:'วิเคราะห์การประมูล · '+A.short,page:true};
+}
+const ALIAS={'cy':'cy-all','bk-house':'bk-h','bk-land':'bk-l','bk-condo':'bk-c','analysis':'cy-ana'};
+const ST={0:['ยังไม่ถึง','t-pend'],1:['ขายได้','t-sold'],3:['ไม่มีผู้สู้ราคา','t-nobid'],4:['งด (ส่งประกาศมิชอบ)','t-stop'],6:['ถอนการยึด','t-wd'],10:['งดขาย','t-stop'],13:['งดขาย','t-stop'],14:['งดขาย','t-stop'],15:['งดขาย','t-stop'],16:['งดขาย','t-stop'],18:['ถอนการบังคับคดี','t-wd'],26:['งดขายในนัดที่เหลือ','t-stop']};
+const st=c=>ST[c]||['งดขาย','t-stop'];
+const TH=['','ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const fd=d=>d?`${+d.slice(6)} ${TH[+d.slice(4,6)]} ${d.slice(2,4)}`:'-';
+const fm=n=>n==null?'-':Math.round(n).toLocaleString('th-TH');
+const ceilP=v=>{const u=v>=100000?10000:1000;return Math.ceil(v/u)*u};
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const $=id=>document.getElementById(id);
+
+// ---------- data ----------
+const DATA={cy:null,pk:null,bk:null}, BASE={}, HIST={}, ANA={};
+function derive(r){
+  r.k=(r.lot+'|'+r.seq+'|'+r.dn).replace(/[^\w฀-๿|.\- ]/g,'');
+  r.condo=/ห้องชุด/.test(r.ty); r.house=!r.condo&&/สิ่งปลูกสร้าง/.test(r.ty); r.land=!r.condo&&!r.house;
+  r.kind=r.condo?'c':r.house?'h':'l';
+  r.debtOn=r.st==='การจำนองติดไป'; r.ns3=/น\.ส\. ?3/.test(r.lt||'');
+  r.tbx=r.am?(r.am+' · '+r.tb):(r.tb||'-');
+  const p=(r.a||'0-0-0').split('-'); r.ar=r.condo?(p[2]+' ตร.ม.'):(r.a+' ไร่-งาน-วา');
+  const i=r.d.findIndex(d=>d>=TODAY); r.ni=i; r.next=i>=0?r.d[i]:null;
+  r.nob=r.s.slice(0,i<0?r.s.length:i).filter(c=>c===3).length;
+  r.fac=[1,.9,.8,.7][Math.min(r.nob,3)];
+  if(r.debtOn&&!r.fb){ // จำนองติดไป: ประมูลเฉพาะส่วนเกินหนี้ ถ้าหนี้ ≥ ราคาประเมิน เริ่มที่ 50,000
+    const rem=r.pr-(r.db||0); r.sp=rem>0?ceilP(rem*r.fac):50000; r.spSrc=rem>0?'ประมาณ · ส่วนเกินหนี้':'หนี้เกินราคาประเมิน'; r.cost=r.sp+(r.db||0);
+  } else { r.sp=r.fb?r.fb.sp:ceilP(r.pr*r.fac); r.spSrc=r.fb?'บัญชี FB':'ประมาณ'; }
+  let li=-1; r.d.forEach((d,j)=>{if(d<TODAY&&r.s[j]!==0)li=j}); r.li=li; r.lastCode=li>=0?r.s[li]:null;
+  r.isNew=r.ni===0; r.roundTxt=r.next?`นัดที่ ${r.ni+1}/${r.d.length}`:'ครบทุกนัดแล้ว';
+  r.slip=r.nob?`ไม่มีผู้สู้ราคามาแล้ว ${r.nob} นัด`:(r.isNew?'ทรัพย์ใหม่ ยังไม่เคยประมูล':'');
+  return r;
+}
+function addHist(r,H){
+  r.hk=(r.cs||'').replace(/[\s.]/g,'')+'|'+String(r.dn||'').trim().split(/[,\-\s]/)[0];
+  r.H=(H.h&&H.h[r.hk])||[];
+  const cur=new Set(r.d); const prevDates=[...new Set(r.H.filter(x=>!cur.has(x[0])).map(x=>x[0]))];
+  r.prevN=prevDates.length; r.relist=r.prevN>0;
+  const soldH=r.H.find(x=>x[3]>0); r.soldPrice=soldH?soldH[3]:0; r.soldDate=soldH?soldH[0]:'';
+  r.caseYear=+((r.cs||'').split('/')[1]||0); r.caseAge=r.caseYear?2569-r.caseYear:0;
+  return r;
+}
+async function load(area){
+  if(DATA[area]) return;
+  const [d,b,h]=await Promise.all([fetch(AREAS[area].data).then(r=>r.json()),fetch(AREAS[area].base).then(r=>r.json()),
+    AREAS[area].hist?fetch(AREAS[area].hist).then(r=>r.json()).catch(()=>null):null]);
+  HIST[area]=h||{h:{},sold:[],stat:{}}; BASE[area]=b; DATA[area]=d.map(r=>addHist(derive(r),HIST[area]));
+}
+
+// ---------- my lists (db per person, fallback to this device) ----------
+let MY={}, NOTES={}, saveMode='local', dbRef=null;
+try{MY=JSON.parse(localStorage.getItem('led_my')||'{}');NOTES=JSON.parse(localStorage.getItem('led_notes')||'{}')}catch(e){}
+// pw = เฝ้าดูจากโฟลเดอร์ Drive (ไฟล์ขึ้นต้น 0) · 'none' = ผู้ใช้เอาออกเอง
+const kindOf=r=>{const v=MY[r.k];return v==='none'?undefined:(v||(r.pw?'watch':undefined))};
+const noteOf=r=>NOTES[r.k]!=null?NOTES[r.k]:(r.pn||'');
+function setSync(){const t=saveMode==='db'?'บันทึกในบัญชีของคุณ เปิดจาก iPad/คอมก็เห็นเหมือนกัน':'บันทึกเฉพาะเครื่องนี้';document.querySelectorAll('.sync').forEach(e=>e.textContent=t)}
+async function initDb(){
+  if(!window.claude||!claude.use) return;
+  try{
+    const [db,user]=await Promise.all([claude.use('db'),claude.use('user')]);
+    if(!db||!user) return;
+    const id=await user.id(); if(!id) return;
+    dbRef=db.doc('data/users/'+id+'/watch');
+    dbRef.onSnapshot(s=>{
+      if(s.exists){const d=s.data(); MY=Object.assign({},d.items||{}); NOTES=Object.assign({},d.notes||{}); saveMode='db'; refreshAll();}
+      else if(saveMode!=='db'){saveMode='db';const local=Object.keys(MY).length+Object.keys(NOTES).length; if(local) writeMy(); refreshAll();}
+    },()=>{saveMode='local';dbRef=null;setSync()});
+  }catch(e){}
+}
+let writing=Promise.resolve();
+function writeMy(){
+  try{localStorage.setItem('led_my',JSON.stringify(MY));localStorage.setItem('led_notes',JSON.stringify(NOTES))}catch(e){}
+  if(dbRef&&saveMode==='db'){const items=Object.assign({},MY),notes=Object.assign({},NOTES);writing=writing.then(()=>dbRef.set({items,notes})).catch(e=>{if(e&&e.code==='invalid_argument'){saveMode='local';dbRef=null;setSync()}})}
+}
+const allRows=()=>Object.values(DATA).flatMap(d=>d||[]);
+function toggle(k,kind){const r=allRows().find(x=>x.k===k);if(!r)return;const cur=kindOf(r);
+  if(cur===kind){if(r.pw)MY[k]='none';else delete MY[k]}else MY[k]=kind;writeMy();refreshAll();}
+function saveNote(k,txt){const r=allRows().find(x=>x.k===k);if(!r)return;txt=txt.trim();
+  if(txt===(r.pn||''))delete NOTES[k];else NOTES[k]=txt;writeMy();}
+
+// ---------- routing ----------
+let route='home', view='map', F={date:'',type:'',debt:'',tb:'',max:0,mine:'',stat:''};
+function go(r){location.hash=r==='home'?'':r; show(r)}
+window.addEventListener('hashchange',()=>show(location.hash.slice(1)||'home'));
+$('btnHome').onclick=()=>go('home');
+$('btnHub').onclick=()=>go('o-'+ROUTES[route].area);
+$('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;view=b.dataset.v;renderRoute()};
+
+async function show(r){
+  r=ALIAS[r]||r; route=ROUTES[r]?r:'home'; $('btnHub').hidden=true;
+  if(route==='home'){ $('tabs').hidden=true; $('title').textContent='บอร์ดทรัพย์ขายทอดตลาด'; $('sched').textContent=''; screen('sHome'); renderHome(); return; }
+  const R=ROUTES[route]; await load(R.area);
+  if(!R.hub){$('btnHub').hidden=false;$('btnHub').textContent='‹ '+AREAS[R.area].short}
+  if(R.hub){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sHome'); renderHub(R.area); return; }
+  if(R.page){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sUpd'); await renderAnalysis(R.area); return; }
+  F={date:'',type:R.type,debt:'',tb:'',max:0,mine:'',stat:''}; view='map';
+  $('tabs').hidden=false; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched;
+  buildRail(); drawBase(R.area); renderRoute(true);
+}
+function screen(id){['sHome','sMap','sList','sMine','sUpd'].forEach(s=>$(s).hidden=s!==id)}
+function renderRoute(fit){
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===view));
+  screen({map:'sMap',list:'sList',mine:'sMine',upd:'sUpd'}[view]);
+  if(view==='map'){map.invalidateSize();drawPins(fit)}
+  if(view==='list')renderList();
+  if(view==='mine')renderMine();
+  if(view==='upd')renderUpd();
+  $('bMine').textContent=DATA[ROUTES[route].area].filter(r=>kindOf(r)&&(!ROUTES[route].type||r.kind===ROUTES[route].type)).length; setSync();
+}
+function refreshAll(){ if(route==='home')renderHome(); else if(ROUTES[route].hub)renderHub(ROUTES[route].area); else if(!ROUTES[route].page)renderRoute(false); }
+
+// ---------- home ----------
+async function renderHome(){
+  await Promise.all(Object.keys(AREAS).map(load));
+  const live=a=>DATA[a].filter(r=>!r.red&&!r.ns3);
+  const cnt=(a,f)=>live(a).filter(f).length;
+  const card=(r,c,label,sub,n)=>`<button type="button" class="card" style="--c:var(${c})" data-go="${r}"><b>${label}</b><span class="n">${n}</span><span class="s">${sub}</span></button>`;
+  const mine=allRows().filter(r=>kindOf(r));
+  const off=a=>{const A=AREAS[a],n=cnt(a,()=>true),H=HIST[a];return `<button type="button" class="card office" style="--c:var(--brand)" data-go="o-${a}"><b>${A.office}</b>
+    <span class="n">${n||'–'}</span><span class="s">${n?'รายการที่ยังขายอยู่':'ยังไม่ได้ดึงรายการทรัพย์'}${H&&H.sold&&H.sold.length?' · ขายได้ย้อนหลัง '+fm(H.sold.length)+' รายการ':''}</span><span class="s">${A.sched.split(' · ')[0]}</span></button>`};
+  $('sHome').innerHTML=`<div class="home-wrap">
+   <div class="area"><h2>เลือกสำนักงานบังคับคดี</h2><p class="meta">แต่ละสำนักงานแยกหน้าของตัวเอง กดเพื่อเข้าไปดูแผนที่ รายการ และบทวิเคราะห์</p>
+    <div class="cards">${Object.keys(AREAS).map(off).join('')}</div></div>
+   <div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">⭐ ทรัพย์ของฉัน (${mine.length})</h2><p class="sync sub"></p>
+    ${mine.length?tableOf(mine,true):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่ แล้วรายการจะมาอยู่ที่นี่</p>'}</div>
+   <p class="foot">ข้อมูลจากเว็บกรมบังคับคดี ณ 8 ต.ค. 2569 · ราคาเริ่มต้นเป็นค่าประมาณ (ราคาประเมิน × 100/90/80/70% ตามจำนวนนัดที่ไม่มีผู้สู้ราคา) ยกเว้นที่ระบุว่ามาจากบัญชี FB · แผนที่ถนน © OpenStreetMap contributors · ตรวจสอบประกาศจริงก่อนเข้าประมูลทุกครั้ง</p>
+  </div>`;
+  $('sHome').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  bindRows($('sHome')); setSync();
+}
+
+function renderHub(a){
+  const A=AREAS[a], live=DATA[a].filter(r=>!r.red&&!r.ns3), c=f=>live.filter(f).length;
+  const card=(r,col,label,sub,n)=>`<button type="button" class="card" style="--c:var(${col})" data-go="${r}"><b>${label}</b><span class="n">${n}</span><span class="s">${sub}</span></button>`;
+  const mine=DATA[a].filter(r=>kindOf(r));
+  const H=HIST[a]; const lastSold=H&&H.sold&&H.sold.length?H.sold[0][0]:'';
+  $('sHome').innerHTML=`<div class="home-wrap">
+   <div class="area"><h2>${A.office}</h2><p class="meta">${A.sched}</p>
+    ${live.length?'':`<p class="note">${A.note}</p>`}
+    <div class="cards">
+     ${live.length?card(a+'-all','--ink','🗺️ ทุกประเภท','แผนที่รวม',live.length):''}
+     ${A.types.map(k=>live.length?card(a+'-'+k,k==='h'?'--house':k==='l'?'--land':'--condo',(k==='h'?'🏠 ':k==='l'?'🌳 ':'🏢 ')+KN[k],k==='h'?'ที่ดินพร้อมสิ่งปลูกสร้าง':k==='c'?'คอนโด / อาคารชุด':'ที่ดินเปล่า',c(r=>r.kind===k)):'').join('')}
+     ${A.ana?`<button type="button" class="card" style="--c:var(--brand)" data-go="${a}-ana"><b>📊 วิเคราะห์การประมูล</b><span class="n">6 เดือน</span><span class="s">ราคาขายจริง · นัดที่ขายได้ · การสู้ราคา · ทำเล</span></button>`:''}
+    </div></div>
+   ${live.length?`<div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">⭐ ทรัพย์ของฉันที่${A.short} (${mine.length})</h2><p class="sync sub"></p>${mine.length?tableOf(mine):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่</p>'}</div>`:''}
+   ${lastSold?`<div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">💰 ขายได้ล่าสุด นัด ${fd(lastSold)}</h2>${soldTable(H.sold.filter(s=>s[0]===lastSold))}</div>`:''}
+  </div>`;
+  $('sHome').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
+  bindRows($('sHome')); setSync();
+}
+function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำดับ</th><th>ประเภท</th><th>คดี</th><th>โฉนด</th><th class="n">ราคาประเมิน</th><th class="n">ขายได้</th><th class="n">%</th></tr></thead><tbody>`+
+  g.map(s=>`<tr><td>${esc(s[2])}</td><td>${esc(s[5])}</td><td>${esc(s[3])}</td><td>${esc(s[4])}</td><td class="n">${fm(s[6])}</td><td class="n"><b>${fm(s[7])}</b></td><td class="n">${s[6]?Math.round(s[7]/s[6]*100):'-'}</td></tr>`).join('')+'</tbody></table></div>'}
+
+// ---------- filters ----------
+function liveRows(){const R=ROUTES[route];return DATA[R.area].filter(r=>!r.red&&!r.ns3&&(!R.type||r.kind===R.type))}
+const pass=r=>(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||kindOf(r)===F.mine);
+function chips(id,opts,prop){const el=$(id);el.innerHTML=opts.map(([v,l])=>`<button type="button" class="chip" aria-pressed="${F[prop]===v}" data-v="${v}">${l}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;F[prop]=b.dataset.v;chips(id,opts,prop);renderRoute(false)}}
+function buildRail(){
+  const R=ROUTES[route], A=AREAS[R.area], live=liveRows();
+  const dates=[...new Set(live.map(r=>r.next).filter(Boolean))].sort();
+  const tbs=[...new Set(live.map(r=>r.tbx))].sort();
+  const lg=(c,t,dash)=>`<div><span class="dot${dash?' dash':''}" style="background:var(${c})"></span>${t}</div>`;
+  $('rail').innerHTML=`
+   <div class="f"><b>วันประมูลถัดไป</b><div class="chips" id="fDate"></div></div>
+   ${R.type?'':'<div class="f"><b>ประเภททรัพย์</b><div class="chips" id="fType"></div></div>'}
+   <div class="f"><b>สถานะทรัพย์</b><div class="chips" id="fStat"></div></div>
+   <div class="f"><b>ภาระผูกพัน</b><div class="chips" id="fDebt"></div></div>
+   <div class="f"><label for="fTb"><b>${R.area==='bk'?'เขต · แขวง':'ตำบล'}</b></label><select id="fTb"><option value="">ทั้งหมด</option>${tbs.map(t=>`<option>${esc(t)}</option>`).join('')}</select></div>
+   <div class="f"><label for="fMax"><b>ราคาเริ่มต้นไม่เกิน (บาท)</b></label><input type="number" id="fMax" inputmode="numeric" placeholder="เช่น 800000" step="50000"></div>
+   <div class="f"><b>แสดงเฉพาะ</b><div class="chips" id="fMine"></div></div>
+   <div class="f legend"><b>สีหมุด</b>
+     ${!R.type||R.type==='h'?lg('--house','บ้าน'):''}${!R.type||R.type==='l'?lg('--land','ที่ดินว่างเปล่า'):''}${R.type==='c'?lg('--condo','ห้องชุด (ตำแหน่งอาคาร)'):''}
+     ${lg('--debt','ติดภาระ (จำนองติดไป)')}${R.area==='bk'?lg('--mut','ตำแหน่งประมาณ',true):''}
+     <div style="color:var(--mut)">ขอบแดง = สนใจประมูล · ขอบส้ม = เฝ้าดู · มีจุดกลาง = ทรัพย์ใหม่</div></div>
+   <div class="count" id="cnt"></div>
+   <div class="note">${A.note}</div>`;
+  chips('fDate',[['','ทุกวัน'],...dates.map(d=>[d,fd(d)+' ('+live.filter(r=>r.next===d).length+')'])],'date');
+  if(!R.type) chips('fType',[['','ทั้งหมด'],['h','บ้าน'],['l','ที่ดินเปล่า']],'type');
+  chips('fDebt',[['','ทั้งหมด'],['free','ปลอดภาระ'],['debt','ติดจำนอง']],'debt');
+  chips('fStat',[['','ทั้งหมด'],['new','🆕 ทรัพย์ใหม่ ('+live.filter(r=>r.isNew).length+')'],['slip','หลุดมา ≥2 นัด ('+live.filter(r=>r.nob>=2).length+')'],['relist','🔁 กลับมาอีกครั้ง ('+live.filter(r=>r.relist).length+')'],['old','คดีเก่า ≥5 ปี ('+live.filter(r=>r.caseAge>=5).length+')']],'stat');
+  chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู']],'mine');
+  $('fTb').onchange=e=>{F.tb=e.target.value;renderRoute(false)};
+  $('fMax').oninput=e=>{F.max=+e.target.value||0;renderRoute(false)};
+}
+
+// ---------- map ----------
+const map=L.map('map',{preferCanvas:true,zoomControl:true,attributionControl:true}).setView([15.81,102.03],12);
+map.attributionControl.setPrefix('').addAttribution('ถนน © OpenStreetMap contributors');
+if(PUBLIC){const osm=L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'}).addTo(map);
+  const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'Esri World Imagery'});
+  L.control.layers({'แผนที่ถนน':osm,'ดาวเทียม':sat},null,{position:'topright'}).addTo(map);}
+const baseLayer=L.layerGroup().addTo(map), pinLayer=L.layerGroup().addTo(map);
+let baseFor=null;
+function drawBase(area){
+  if(baseFor===area) return; baseFor=area; baseLayer.clearLayers();
+  if(PUBLIC){map.setView(AREAS[area].center,AREAS[area].zoom);return}
+  const b=BASE[area], W={1:3,2:2.4,3:1.6,4:1.1}, C={1:'--road1',2:'--road2',3:'--road3',4:'--road4'};
+  b.bounds.forEach(([n,p])=>L.polyline(p,{color:css('--bound'),weight:1,dashArray:'4 4',interactive:false}).addTo(baseLayer));
+  [4,3,2,1].forEach(cl=>b.roads.filter(r=>r[0]===cl).forEach(r=>L.polyline(r[3],{color:css(C[cl]),weight:W[cl],interactive:false}).addTo(baseLayer)));
+  const seen=new Set();
+  b.roads.filter(r=>r[0]<=2&&r[1]&&r[3].length>3).forEach(r=>{const key=r[1];if(seen.has(key))return;seen.add(key);const m=r[3][Math.floor(r[3].length/2)];
+    L.tooltip({permanent:true,direction:'center',className:'roadlbl',interactive:false}).setLatLng(m).setContent(esc(r[1])).addTo(baseLayer)});
+  if(area==='bk'){const done=new Set();b.bounds.forEach(([n,p])=>{if(!n||done.has(n)||p.length<4)return;done.add(n);const c=L.polygon(p).getBounds().getCenter();
+    L.tooltip({permanent:true,direction:'center',className:'roadlbl',interactive:false}).setLatLng(c).setContent(esc(n)).addTo(baseLayer)})}
+  map.setView(AREAS[area].center,AREAS[area].zoom);
+}
+const colorOf=r=>r.debtOn?'--debt':r.condo?'--condo':r.house?'--house':'--land';
+function drawPins(fit){
+  pinLayer.clearLayers(); const list=liveRows().filter(pass); const pts=[];
+  list.filter(r=>r.lat).forEach(r=>{const m=kindOf(r);
+    r.mk=L.circleMarker([r.lat,r.lon],{radius:m?10:8,color:m==='bid'?css('--debt'):m==='watch'?css('--nobid'):css('--surface'),weight:m?4:2,
+      fillColor:css(colorOf(r)),fillOpacity:r.approx?.55:.92,dashArray:r.approx&&!m?'3 3':null}).bindPopup(()=>pop(r),{maxWidth:300,autoPanPadding:[20,20]}).addTo(pinLayer);
+    if(r.isNew)L.circleMarker([r.lat,r.lon],{radius:2.5,stroke:false,fillColor:css('--surface'),fillOpacity:1,interactive:false}).addTo(pinLayer);
+    pts.push([r.lat,r.lon])});
+  $('cnt').innerHTML=`ตรงเงื่อนไข <b>${list.length}</b> รายการ · มีหมุด <b>${pts.length}</b>`;
+  if(fit&&pts.length>1) map.fitBounds(pts,{padding:[30,30],maxZoom:15});
+}
+function hist(r){return '<div class="hist">'+r.d.map((d,j)=>{const[l,c]=r.s[j]===0?(d>=TODAY?['รอ','t-pend']:['ไม่ระบุ','t-pend']):st(r.s[j]);return `<span class="tag ${c}" title="นัดที่ ${j+1} ${fd(d)}">${j+1}·${fd(d)} ${l}</span>`}).join('')+'</div>'}
+function imgLinks(r){if(!r.pic)return '';const b=r.pic.replace(/p\.jpg$/,''),root=PUBLIC?'img/':(ARCH||'https://asset.led.go.th/PPKPicture/');
+  return `<a class="btn" target="_blank" rel="noopener" href="${root}${esc(r.pic)}">📷 รูปทรัพย์</a><a class="btn" target="_blank" rel="noopener" href="${root}${esc(b)}m.jpg">แผนที่สังเขป</a><a class="btn" target="_blank" rel="noopener" href="${root}${esc(b)}j.jpg">แผนที่โจทก์</a>`}
+function histPrev(r){const cur=new Set(r.d);const prev=r.H.filter(x=>!cur.has(x[0]));if(!prev.length)return '';
+  return `<details class="prev"><summary>📜 ประวัติก่อนล็อตนี้ (${r.prevN} นัด)</summary>${prev.map(x=>`<div>${fd(x[0])} · ลำดับ ${esc(x[1])} · ${esc(x[2])}${x[3]?' '+fm(x[3])+' บ.':''}</div>`).join('')}</details>`}
+function pop(r){
+  const loc=r.am?`เขต${esc(r.am)} แขวง${esc(r.tb)}`:`ต.${esc(r.tb)}`;
+  const gm=r.approx?`https://www.google.com/maps/search/${encodeURIComponent((r.ad&&r.ad!=='-'?r.ad+' ':'')+'แขวง'+r.tb+' เขต'+r.am+' กรุงเทพมหานคร')}`:`https://www.google.com/maps?q=${r.lat},${r.lon}`;
+  return `<div class="pop"><h3>ลำดับ ${esc(r.seq)} · ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดินเปล่า'}</h3>
+  <div class="round">${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}</div>
+  ${PUBLIC&&r.pic?`<a href="img/${esc(r.pic)}" target="_blank" rel="noopener"><img class="ph" src="img/${esc(r.pic)}" alt="ภาพทรัพย์ลำดับ ${esc(r.seq)}" loading="lazy" onerror="this.src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}';this.onerror=()=>this.remove()"></a>`:''}
+  ${r.approx?'<div class="approx">📍 ตำแหน่งประมาณกลางแขวง ยังไม่ใช่แปลงจริง</div>':''}
+  ${r.debtOn?`<div class="warn">⚠️ จำนองติดไป: ผู้ซื้อต้องรับหนี้ ${fm(r.db)} บ.${r.dbn?' ('+esc(r.dbn)+')':''}<br><span style="font-weight:400">ต้นทุนจริง ≈ ราคาประมูล ${fm(r.sp)} + หนี้ ${fm(r.db)} = <b>${fm(r.cost)} บ.</b> (${r.pr?Math.round(r.cost/r.pr*100):'-'}% ของราคาประเมิน)</span></div>`:''}
+  <div class="kv">
+   <span>ราคาประเมิน</span><span>${fm(r.pr)} บ.</span>
+   <span>ราคาเริ่มต้น</span><span><b>${fm(r.sp)} บ.</b> <small>(${r.spSrc})</small></span>
+   <span>เงินประกัน</span><span>${fm(r.rf)} บ.</span>
+   <span>เนื้อที่</span><span>${esc(r.ar)}</span>
+   ${r.rm&&r.rm!=='-'?`<span>หมายเหตุ</span><span><small>${esc(r.rm)}</small></span>`:''}
+   <span>ที่ตั้ง</span><span>${r.ad&&r.ad!=='-'?'เลขที่ '+esc(r.ad)+' ':''}${loc}</span>
+   <span>${r.condo?'โฉนดอาคาร':'โฉนด'}</span><span>${esc(r.dn)}</span>
+   ${r.lp?`<span>ราคาที่ดินทางการ</span><span>${esc(r.lp)} บ./ตร.วา</span>`:''}
+   <span>นัดถัดไป</span><span><b>${fd(r.next)}</b> (นัดที่ ${r.ni+1})</span>
+   <span>ภาระ</span><span>${esc(r.st)}</span>
+   ${r.fb?`<span>FB</span><span>${esc(r.fb.note)}</span>`:''}
+   <span>คดี</span><span>${esc(r.cs)} · ${esc(r.lot)}</span>
+  </div>${hist(r)}${histPrev(r)}
+  <label class="notelbl" for="note-${esc(r.k)}">📝 โน้ตของฉัน</label>
+  <textarea class="note-in" id="note-${esc(r.k)}" data-note="${esc(r.k)}" rows="2" placeholder="เช่น ไปดูแล้ว ทางเข้าแคบ / ราคาที่ตั้งใจสู้">${esc(noteOf(r))}</textarea>
+  <span class="notesaved" id="ns-${esc(r.k)}"></span>
+  <div class="btns">
+   <button type="button" class="btn bid" aria-pressed="${kindOf(r)==='bid'}" data-t="${esc(r.k)}" data-kind="bid">🎯 สนใจประมูล</button>
+   <button type="button" class="btn watch" aria-pressed="${kindOf(r)==='watch'}" data-t="${esc(r.k)}" data-kind="watch">👁 เฝ้าดู</button>
+   ${imgLinks(r)}
+   <a class="btn" target="_blank" rel="noopener" href="${gm}">Google Maps</a>
+  </div></div>`;
+}
+let noteTimer=null;
+document.addEventListener('input',e=>{const ta=e.target.closest('textarea[data-note]');if(!ta)return;clearTimeout(noteTimer);
+  const k=ta.dataset.note,v=ta.value,flag=document.getElementById('ns-'+k);if(flag)flag.textContent='กำลังพิมพ์…';
+  noteTimer=setTimeout(()=>{saveNote(k,v);const f=document.getElementById('ns-'+k);if(f)f.textContent=saveMode==='db'?'บันทึกแล้ว':'บันทึกในเครื่องนี้แล้ว'},800)});
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;e.stopPropagation();toggle(b.dataset.t,b.dataset.kind);
+  const r=[...(DATA.cy||[]),...(DATA.bk||[])].find(x=>x.k===b.dataset.t);if(r&&r.mk&&r.mk.isPopupOpen&&r.mk.isPopupOpen())r.mk.setPopupContent(pop(r));});
+
+// ---------- tables ----------
+const kindTh=r=>`<span class="dot" style="background:var(${colorOf(r)})"></span> ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดิน'}${r.debtOn?' <span class="tag t-wd">ติดจำนอง</span>':''}`;
+function tableOf(rows,withArea){
+  return `<div class="tbl"><table><thead><tr><th></th><th>นัดถัดไป</th><th>ลำดับ / ล็อต</th><th>ประเภท</th>${withArea?'<th>พื้นที่</th>':''}<th>${withArea?'ตำบล/แขวง':'ตำบล/แขวง'}</th><th>เนื้อที่</th><th class="n">ราคาประเมิน</th><th class="n">ราคาเริ่มต้น</th><th>หมุด</th></tr></thead><tbody>
+  ${rows.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${m==='bid'?'🎯':m==='watch'?'👁':''}</td>
+   <td>${r.red?`<span class="tag t-sold">ปิดแล้ว: ${st(r.lastCode)[0]}</span>`:fd(r.next)+`<br><small>${r.roundTxt}</small>${r.isNew?' <span class="tag t-new">ใหม่</span>':''}${r.nob?`<br><span class="tag t-nobid">หลุด ${r.nob} นัด</span>`:''}${r.relist?` <span class="tag t-relist">🔁 ${r.prevN}</span>`:''}`}</td>
+   <td>${esc(r.seq)}<br><small>${esc(r.lot.replace(' - 1',''))}</small></td><td>${kindTh(r)}</td>${withArea?`<td>${r.area==='cy'?'ชัยภูมิ':'กทม.'}</td>`:''}
+   <td>${esc(r.tbx)}${noteOf(r)?`<br><small>📝 ${esc(noteOf(r))}</small>`:''}</td><td>${esc(r.condo?r.ar:r.a)}</td><td class="n">${fm(r.pr)}</td><td class="n"><b>${fm(r.sp)}</b><br><small>${r.spSrc}</small></td>
+   <td>${r.lat?(r.approx?'≈':'📍'):'—'}</td></tr>`}).join('')}</tbody></table></div>`;
+}
+function bindRows(el){el.querySelectorAll('tbody tr[data-k]').forEach(tr=>tr.onclick=async()=>{
+  const a=tr.dataset.a, r=DATA[a].find(x=>x.k===tr.dataset.k); if(!r||!r.lat||r.red) return;
+  const target=route!=='home'&&ROUTES[route].area===a&&(!ROUTES[route].type||ROUTES[route].type===r.kind)?route:(a+'-'+r.kind);
+  if(target!==route){location.hash=target;await show(target)}
+  F.mine='';F.date='';F.tb='';F.max=0;F.debt='';view='map';buildRail();renderRoute(false);
+  map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),250)})}
+function bars(rows,opt={}){ // rows: [label, value, note?]
+  const max=Math.max(1,...rows.map(r=>r[1])), tot=rows.reduce((a,r)=>a+r[1],0);
+  return `<div class="bars">${rows.map(([l,v,n])=>`<div class="br" title="${esc(l)}: ${v}${opt.unit||''}${tot&&opt.pct?' ('+Math.round(v/tot*100)+'%)':''}"><span class="bl">${esc(l)}</span><span class="bt"><span class="bf" style="width:${(v/max*100).toFixed(1)}%"></span></span><span class="bv">${fm(v)}${opt.unit||''}${tot&&opt.pct?` <small>${Math.round(v/tot*100)}%</small>`:''}${n?` <small>${esc(n)}</small>`:''}</span></div>`).join('')}</div>`}
+async function renderAnalysis(area){
+  if(!ANA[area]){try{ANA[area]=await fetch(AREAS[area].ana).then(r=>r.json())}catch(e){ANA[area]=null}}
+  const ANAx=ANA[area];
+  if(!ANAx){$('upd').innerHTML='<p class="empty">ยังไม่มีข้อมูลวิเคราะห์</p>';return}
+  const A=ANAx, H=A.h, Ld=A.l, pc=x=>x==null?'-':Math.round(x*100)+'%';
+  const share=(arr,i)=>{const t=arr.reduce((a,r)=>a+r[1],0);return t?Math.round(arr[i][1]/t*100):0};
+  const m=Object.fromEntries(A.mort.map(x=>[x[0],x]));
+  const sold=A.outcomes.find(o=>o[0]==='ขายได้'), tot=A.outcomes.reduce((a,o)=>a+o[1],0);
+  $('upd').innerHTML=`<h2>📊 วิเคราะห์การประมูล · ${esc(AREAS[area].office)}</h2>
+  <p class="sub">จากรายงานผลการขายของกรมบังคับคดี ${fd(A.range[0])} – ${fd(A.range[1])} · ทรัพย์ ${fm(A.nAssets)} รายการ ขายได้ ${fm(A.nSold)} รายการ · ข้อมูลย้อนหลังได้ 6 เดือน จึงนับจำนวนนัดได้เฉพาะในช่วงนี้</p>
+  <div class="kpis">
+   <div class="kpi"><b>${Math.round(sold[1]/tot*100)}%</b><span>ของการขึ้นประมูลแต่ละนัด ขายได้</span></div>
+   <div class="kpi"><b>${pc(H.median)}</b><span>บ้าน: ราคาขายได้ค่ากลาง เทียบราคาประเมิน</span></div>
+   <div class="kpi"><b>${share(H.comp,0)}%</b><span>บ้านที่ขายได้ ปิดที่ราคาเริ่มต้นพอดี ไม่มีใครสู้</span></div>
+   ${m['ติดจำนอง']?`<div class="kpi"><b>${m['ติดจำนอง'][2]}/${m['ติดจำนอง'][1]}</b><span>บ้านติดจำนองที่ขายได้ (ล็อตปัจจุบัน)</span></div>`:''}
+  </div>
+  ${A.mort.length?`<section class="ana"><h3>1. คนชอบบ้านปลอดภาระไหม</h3>
+   <p class="sub">ใน อ.เมือง ล็อต มิ.ย.–พ.ย. 69: บ้านปลอดภาระขายได้ ${m['ปลอดภาระ']?m['ปลอดภาระ'][2]:0} จาก ${m['ปลอดภาระ']?m['ปลอดภาระ'][1]:0} รายการ ส่วนบ้านติดจำนอง ขายได้ ${m['ติดจำนอง']?m['ติดจำนอง'][2]:0} จาก ${m['ติดจำนอง']?m['ติดจำนอง'][1]:0} รายการ → ตลาดแทบไม่แตะทรัพย์ติดจำนอง ถ้าจะเล่นต้องคิดต้นทุนรวมหนี้เสมอ</p>
+   ${bars(A.mort.map(x=>[x[0]+' (ขายได้/ทั้งหมด)',x[2],x[1]?Math.round(x[2]/x[1]*100)+'% ของ '+x[1]:'']))}</section>`:'<p class="note">ส่วนภาระจำนองและทำเล ต้องมีรายการทรัพย์ของสำนักงานนี้ก่อน (ยังไม่ได้ดึง)</p>'}
+  <section class="ana"><h3>2. ราคาที่ขายได้จริง (% ของราคาประเมิน)</h3>
+   <div class="two"><div><h4>บ้าน · ${fm(H.n)} รายการ · ค่ากลาง ${pc(H.median)}</h4>${bars(H.pct,{pct:1})}</div>
+   <div><h4>ที่ดินเปล่า · ${fm(Ld.n)} รายการ · ค่ากลาง ${pc(Ld.median)}</h4>${bars(Ld.pct,{pct:1})}</div></div>
+   <p class="sub">ก้อน 70–80% คือบ้านที่ขายในนัดที่ 4 ขึ้นไป (ราคาเริ่มต้นลดเหลือ 70%) · ก้อน ≥130% คือรายการที่มีคนสู้ราคากันแรง</p></section>
+  <section class="ana"><h3>3. ขายได้ที่นัดไหน</h3>
+   <div class="two"><div><h4>บ้าน (${H.attN} รายการที่เห็นตั้งแต่นัดแรก)</h4>${bars(H.att,{pct:1})}</div><div><h4>ที่ดินเปล่า (${Ld.attN} รายการ)</h4>${bars(Ld.att,{pct:1})}</div></div>
+   <p class="sub">นับเฉพาะทรัพย์ที่ขึ้นประมูลครั้งแรกหลังต้นเดือน มิ.ย. 69 จะได้รู้ว่าขายได้ที่นัดที่เท่าไรจริงๆ</p></section>
+  <section class="ana"><h3>4. สู้ราคากันเยอะไหม (ราคาขายได้ เทียบราคาเริ่มต้นของนัดนั้น)</h3>
+   <div class="two"><div><h4>บ้าน</h4>${bars(H.comp,{pct:1})}</div><div><h4>ที่ดินเปล่า</h4>${bars(Ld.comp,{pct:1})}</div></div>
+   <p class="sub">ส่วนใหญ่ปิดที่ราคาเริ่มต้น เพราะมีผู้เข้าสู้ราคาคนเดียว · รายการที่สู้กันแรงมักเป็นทำเลดีหรือราคาประเมินต่ำกว่าตลาดมาก</p></section>
+  <section class="ana"><h3>5. ระดับราคาไหนขายออก</h3>
+   <div class="tbl"><table style="min-width:520px"><thead><tr><th>ราคาประเมิน</th><th class="n">บ้าน: ขึ้นประมูล</th><th class="n">ขายได้</th><th class="n">% ขายออก</th><th class="n">ราคาขาย/ประเมิน</th><th class="n">ที่ดิน: ขึ้นประมูล</th><th class="n">ขายได้</th><th class="n">ราคาขาย/ประเมิน</th></tr></thead><tbody>
+   ${H.band.map((b,i)=>{const l=Ld.band[i];return `<tr><td>${b[0]}</td><td class="n">${b[1]}</td><td class="n">${b[2]}</td><td class="n">${b[1]?Math.round(b[2]/b[1]*100):0}%</td><td class="n">${pc(b[3])}</td><td class="n">${l[1]}</td><td class="n">${l[2]}</td><td class="n">${pc(l[3])}</td></tr>`}).join('')}
+   </tbody></table></div></section>
+  ${A.loc.length?`<section class="ana"><h3>6. ทำเล: บ้านแยกตำบล</h3>
+   <div class="tbl"><table style="min-width:520px"><thead><tr><th>ตำบล</th><th class="n">บ้านในล็อต มิ.ย.–พ.ย.</th><th class="n">ขายได้</th><th class="n">เฉลี่ยไม่มีผู้สู้ (นัด)</th><th class="n">กลับมาจากล็อตเก่า</th></tr></thead><tbody>
+   ${A.loc.map(x=>`<tr><td>${esc(x[0])}</td><td class="n">${x[1]}</td><td class="n">${x[2]} <small>(${Math.round(x[2]/x[1]*100)}%)</small></td><td class="n">${x[3]}</td><td class="n">${x[4]}</td></tr>`).join('')}
+   </tbody></table></div>
+   <p class="sub">ตำบลที่ขายออกน้อยและทรัพย์วนกลับมาบ่อย อาจเป็นเพราะทำเลหรือสภาพทรัพย์ · ตำบลที่ขายออกเร็วมีโอกาสโดนสู้ราคามากกว่า</p></section>`:''}
+  <section class="ana"><h3>สรุปไว้วางแผนประมูล</h3><ul class="tips">
+   <li>บ้านส่วนใหญ่ปิดที่ราคาเริ่มต้นของนัดนั้น ถ้าทรัพย์ไม่ฮิต การรอให้ถึงนัดที่ 4 (เริ่มที่ 70%) มักคุ้มกว่า แต่เสี่ยงคนอื่นเข้าก่อน</li>
+   <li>บ้านราคาประเมินต่ำกว่า 3 แสน ขายได้ราวราคาประเมินเต็ม (ค่ากลาง ${pc(H.band[0][3])}) แปลว่ามีคนแย่งกัน ส่วน 3–6 แสนปิดได้ต่ำสุด (ค่ากลาง ${pc(H.band[1][3])})</li>
+   <li>ทรัพย์ติดจำนองแทบไม่มีคนซื้อ ถ้าสนใจให้ดูต้นทุนจริง (ราคาประมูล + หนี้) ในหมุดก่อนทุกครั้ง</li>
+   <li>ตัวเลขนี้เป็นสถิติย้อนหลัง ไม่ใช่การรับประกันราคา ควรดูทรัพย์จริงและประกาศจริงก่อนเข้าประมูล</li></ul></section>`;
+  bindRows($('upd'));
+}
+function renderList(){
+  const rows=liveRows().filter(pass).sort((a,b)=>(a.next||'').localeCompare(b.next||'')||a.sp-b.sp);
+  $('list').innerHTML=`<h2>รายการ (${rows.length})</h2><p class="sub">ใช้ตัวกรองเดียวกับแท็บแผนที่ · กดแถวที่มีหมุดเพื่อไปดูบนแผนที่</p>${tableOf(rows)}`; bindRows($('list'));
+}
+function renderMine(){
+  const R=ROUTES[route], all=DATA[R.area].filter(r=>kindOf(r)&&(!R.type||r.kind===R.type));
+  const part=(k,t)=>{const rs=all.filter(r=>kindOf(r)===k).sort((a,b)=>(a.next||'9').localeCompare(b.next||'9'));return `<h2>${t} (${rs.length})</h2>${rs.length?tableOf(rs):'<p class="empty">ยังไม่มี</p>'}`};
+  $('mine').innerHTML=`<p class="sync sub"></p>${part('bid','🎯 สนใจประมูล')}${part('watch','👁 เฝ้าดู')}`; bindRows($('mine')); setSync();
+}
+function renderUpd(){
+  const R=ROUTES[route], rows=DATA[R.area].filter(r=>!R.type||r.kind===R.type);
+  const recent=[...new Set(rows.filter(r=>r.li>=0).map(r=>r.d[r.li]))].sort().slice(-3).reverse();
+  const G=[['ขายได้ (ออกจากตลาด)',[1]],['ไม่มีผู้สู้ราคา → นัดหน้าราคาลด',[3]],['งดขาย / มีค้าน / โจทก์แถลง',[4,10,13,14,15,16,26]],['ถอนการยึด / ถอนการบังคับคดี',[6,18]]];
+  let h=`<h2>🔔 ผลการประมูลงวดล่าสุด</h2><p class="sub">จากสถานะรายนัดบนเว็บกรมบังคับคดี ${R.area==='bk'?'(เฉพาะ 20 รายการตัวอย่าง)':''}</p>`;
+  if(!recent.length) h+='<p class="empty">ยังไม่มีผลประมูลในข้อมูลชุดนี้</p>';
+  recent.forEach(d=>{const rs=rows.filter(r=>r.li>=0&&r.d[r.li]===d);h+=`<h2 style="font-size:15px">นัดวันที่ ${fd(d)} · ${rs.length} รายการ</h2>`;
+    G.forEach(([t,codes])=>{const g=rs.filter(r=>codes.includes(r.lastCode));if(!g.length)return;const nob=codes[0]===3;
+     h+=`<details ${codes[0]<=3?'open':''}><summary>${t} (${g.length})</summary><div class="tbl"><table><thead><tr><th></th><th>ลำดับ</th><th>ประเภท</th><th>ตำบล/แขวง</th><th class="n">ราคาประเมิน</th>${nob?'<th class="n">เริ่มต้นนัดหน้า</th><th>นัดหน้า</th>':'<th>สถานะ</th>'}</tr></thead><tbody>
+     ${g.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${m==='bid'?'🎯':m==='watch'?'👁':''}</td><td>${esc(r.seq)}<br><small>${esc(r.lot.replace(' - 1',''))}</small></td><td>${kindTh(r)}</td><td>${esc(r.tbx)}</td><td class="n">${fm(r.pr)}</td>${nob?`<td class="n"><b>${fm(r.sp)}</b> <small>(${Math.round(r.fac*100)}%)</small></td><td>${fd(r.next)}</td>`:`<td><span class="tag ${st(r.lastCode)[1]}">${st(r.lastCode)[0]}</span>${r.fb?'<br><small>'+esc(r.fb.note)+'</small>':''}</td>`}</tr>`}).join('')}</tbody></table></div></details>`});});
+  const HS=HIST[R.area];
+  if(HS&&HS.sold&&HS.sold.length){
+    const pat=R.type==='h'?/สิ่งปลูกสร้าง/:R.type==='l'?/ว่างเปล่า/:R.type==='c'?/ห้องชุด/:null;
+    const S=HS.sold.filter(s=>s[1]===AREAS[R.area].pid&&(!pat||pat.test(s[5])));
+    const days=[...new Set(S.map(s=>s[0]))].sort().reverse().slice(0,2);
+    const st2=k=>{const x=HS.stat[k];return x?`${k==='h'?'บ้าน':'ที่ดินเปล่า'} ขายได้กลางๆ ${Math.round(x.median*100)}% ของราคาประเมิน (ครึ่งหนึ่งอยู่ช่วง ${Math.round(x.p25*100)}–${Math.round(x.p75*100)}%, ${x.n} รายการ)`:''};
+    h+=`<h2>💰 ราคาที่ขายได้จริง</h2><p class="sub">จากรายงานผลการขายของกรมบังคับคดี ${fd(HS.range[0])} – ${fd(HS.range[1])} · ${[st2('h'),st2('l')].filter(Boolean).join(' · ')}</p>`;
+    days.forEach(d=>{const g=S.filter(s=>s[0]===d);h+=`<details open><summary>นัด ${fd(d)} · ขายได้ ${g.length} รายการ</summary><div class="tbl"><table><thead><tr><th>ลำดับ</th><th>ประเภท</th><th>คดี</th><th>โฉนด</th><th class="n">ราคาประเมิน</th><th class="n">ขายได้</th><th class="n">%</th></tr></thead><tbody>`+
+      g.map(s=>`<tr><td>${esc(s[2])}</td><td>${esc(s[5])}</td><td>${esc(s[3])}</td><td>${esc(s[4])}</td><td class="n">${fm(s[6])}</td><td class="n"><b>${fm(s[7])}</b></td><td class="n">${s[6]?Math.round(s[7]/s[6]*100):'-'}</td></tr>`).join('')+'</tbody></table></div></details>'});
+  }
+  $('upd').innerHTML=h; bindRows($('upd'));
+}
+
+show(location.hash.slice(1)||'home');
+initDb();
+</script>
+</body></html>

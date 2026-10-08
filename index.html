@@ -95,6 +95,7 @@ select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--line
 .bl{color:var(--mut);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.bt{height:12px;background:var(--surface2);border-radius:0 4px 4px 0}
 .bf{display:block;height:100%;background:var(--house);border-radius:0 4px 4px 0;min-width:2px}.bv{font-variant-numeric:tabular-nums;white-space:nowrap}
 .tips{margin:0;padding-left:20px;display:grid;gap:4px}
+.th{display:block;width:96px;height:64px;object-fit:cover;border-radius:6px;margin-bottom:4px;background:var(--surface2)}
 .am-cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.am-cards .card{border-top-width:1px}.am-cards .n{font-size:20px}
 .card.office b{font-size:14px}
 .leaflet-control-layers-toggle{background-image:none!important;width:auto!important;height:auto!important;padding:6px 10px;font-size:13px;color:var(--ink);text-decoration:none}
@@ -318,7 +319,8 @@ function renderHub(a){
   const A=AREAS[a], live=DATA[a].filter(r=>!r.red&&!r.ns3), c=f=>live.filter(f).length;
   const card=(r,col,label,sub,n)=>`<button type="button" class="card" style="--c:var(${col})" data-go="${r}"><b>${label}</b><span class="n">${n}</span><span class="s">${sub}</span></button>`;
   const mine=DATA[a].filter(r=>kindOf(r));
-  const H=HIST[a]; const lastSold=H&&H.sold&&H.sold.length?H.sold[0][0]:'';
+  const nd=live.map(r=>r.next).filter(Boolean).sort()[0]||'';
+  const up=live.filter(r=>r.next===nd).sort((x,y)=>parseInt(x.seq)-parseInt(y.seq));
   $('sHome').innerHTML=`<div class="home-wrap">
    <div class="area"><h2>${A.office}</h2><p class="meta">${A.sched}</p>
     ${live.length?'':`<p class="note">${A.note}</p>`}
@@ -330,7 +332,7 @@ function renderHub(a){
    ${(()=>{const ams=[...new Set(live.map(r=>r.am).filter(Boolean))].sort((x,y)=>c(r=>r.am===y)-c(r=>r.am===x));if(ams.length<2)return '';
      return `<div class="area"><h2>${a==='bk'?'แยกตามเขต':'แยกตามอำเภอ'}</h2><div class="cards am-cards">${ams.map(m=>`<button type="button" class="card" style="--c:var(--line)" data-am="${esc(m)}"><b>${esc(m)}</b><span class="n">${c(r=>r.am===m)}</span><span class="s">บ้าน ${c(r=>r.am===m&&r.kind==='h')} · ที่ดิน ${c(r=>r.am===m&&r.kind==='l')}${a==='bk'?' · ห้องชุด '+c(r=>r.am===m&&r.kind==='c'):''}</span></button>`).join('')}</div></div>`})()}
    ${live.length?`<div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">⭐ ทรัพย์ของฉันที่${A.short} (${mine.length})</h2><p class="sync sub"></p>${mine.length?tableOf(mine):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่</p>'}</div>`:''}
-   ${lastSold?`<div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">💰 ขายได้ล่าสุด นัด ${fd(lastSold)}</h2>${soldTable(H.sold.filter(s=>s[0]===lastSold))}</div>`:''}
+   ${nd?`<details class="mine-all" open><summary style="font-size:15px">📅 ทรัพย์ที่จะประมูลนัดถัดไป ${fd(nd)} · ${up.length} รายการ <small>(กดเพื่อซ่อน/แสดง)</small></summary>${tableOf(up)}</details>`:''}
   </div>`;
   $('sHome').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
   $('sHome').querySelectorAll('[data-am]').forEach(b=>b.onclick=()=>{PRE_AM=b.dataset.am;go(a+'-all')});
@@ -465,8 +467,8 @@ const kindTh=r=>`<span class="dot" style="background:var(${colorOf(r)})"></span>
 function tableOf(rows,withArea){
   return `<div class="tbl"><table><thead><tr><th></th><th>นัดถัดไป</th><th>ลำดับ / ล็อต</th><th>ประเภท</th>${withArea?'<th>พื้นที่</th>':''}<th>${withArea?'ตำบล/แขวง':'ตำบล/แขวง'}</th><th>เนื้อที่</th><th class="n">ราคาประเมิน</th><th class="n">ราคาเริ่มต้น</th><th>หมุด</th></tr></thead><tbody>
   ${rows.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${m==='bid'?'🎯':m==='watch'?'👁':''}</td>
-   <td>${r.red?`<span class="tag t-sold">ปิดแล้ว: ${st(r.lastCode)[0]}</span>`:fd(r.next)+`<br><small>${r.roundTxt}</small>${r.isNew?' <span class="tag t-new">ใหม่</span>':''}${r.nob?`<br><span class="tag t-nobid">หลุด ${r.nob} นัด</span>`:''}${r.relist?` <span class="tag t-relist">🔁 ${r.prevN}</span>`:''}`}</td>
-   <td>${esc(r.seq)}<br><span class="tag t-lot">${esc(r.lotTxt)}</span></td><td>${kindTh(r)}</td>${withArea?`<td>${r.area==='cy'?'ชัยภูมิ':'กทม.'}</td>`:''}
+   <td>${r.red?(r.soldPrice?`<span class="tag t-sold">ขายได้ ${fd(r.soldDate)}</span><br><b>${fm(r.soldPrice)} บ.</b> <small>${r.pr?Math.round(r.soldPrice/r.pr*100)+'% ของราคาประเมิน':''}</small>`:`<span class="tag t-sold">ปิดแล้ว: ${st(r.s.find(c=>c&&c!==3)||r.lastCode)[0]}</span>`):fd(r.next)+`<br><small>${r.roundTxt}</small>${r.isNew?' <span class="tag t-new">ใหม่</span>':''}${r.nob?`<br><span class="tag t-nobid">หลุด ${r.nob} นัด</span>`:''}${r.relist?` <span class="tag t-relist">🔁 ${r.prevN}</span>`:''}`}</td>
+   <td>${PUBLIC&&r.pic?`<img class="th" src="img/${esc(r.pic)}" alt="" loading="lazy" onerror="this.remove()">`:''}${esc(r.seq)}<br><span class="tag t-lot">${esc(r.lotTxt)}</span></td><td>${kindTh(r)}</td>${withArea?`<td>${r.area==='cy'?'ชัยภูมิ':'กทม.'}</td>`:''}
    <td>${esc(r.tbx)}${noteOf(r)?`<br><small>📝 ${esc(noteOf(r))}</small>`:''}</td><td>${esc(r.condo?r.ar:r.a)}</td><td class="n">${fm(r.pr)}</td><td class="n"><b>${fm(r.sp)}</b><br><small>${r.spSrc}</small></td>
    <td>${r.lat?(r.approx?'≈':'📍'):'—'}</td></tr>`}).join('')}</tbody></table></div>`;
 }
@@ -531,7 +533,8 @@ function renderList(){
 function renderMine(){
   const R=ROUTES[route], all=DATA[R.area].filter(r=>kindOf(r)&&(!R.type||r.kind===R.type));
   const part=(k,t)=>{const rs=all.filter(r=>kindOf(r)===k).sort((a,b)=>(a.next||'9').localeCompare(b.next||'9'));return `<h2>${t} (${rs.length})</h2>${rs.length?tableOf(rs):'<p class="empty">ยังไม่มี</p>'}`};
-  $('mine').innerHTML=`<p class="sync sub"></p>${part('bid','🎯 สนใจประมูล')}${part('watch','👁 เฝ้าดู')}`; bindRows($('mine')); setSync();
+  const closed=all.filter(r=>r.red), soldN=closed.filter(r=>r.soldPrice).length;
+  $('mine').innerHTML=`<p class="sync sub"></p>${closed.length?`<p class="note">ในรายการของคุณ ปิดไปแล้ว ${closed.length} รายการ (ขายได้ ${soldN}) · แถวที่ขายได้แสดงวันที่และราคาขายได้จริงจากรายงานผลการขายของกรมบังคับคดี</p>`:''}${part('bid','🎯 สนใจประมูล')}${part('watch','👁 เฝ้าดู')}`; bindRows($('mine')); setSync();
 }
 function renderUpd(){
   const R=ROUTES[route], rows=DATA[R.area].filter(r=>!R.type||r.kind===R.type);

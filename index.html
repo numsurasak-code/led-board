@@ -334,7 +334,7 @@ function renderHub(a){
     </div></div>
    ${(()=>{const ams=[...new Set(live.map(r=>r.am).filter(Boolean))].sort((x,y)=>c(r=>r.am===y)-c(r=>r.am===x));if(ams.length<2)return '';
      return `<div class="area"><h2>${a==='bk'?'แยกตามเขต':'แยกตามอำเภอ'}</h2><div class="cards am-cards">${ams.map(m=>`<button type="button" class="card" style="--c:var(--line)" data-am="${esc(m)}"><b>${esc(m)}</b><span class="n">${c(r=>r.am===m)}</span><span class="s">บ้าน ${c(r=>r.am===m&&r.kind==='h')} · ที่ดิน ${c(r=>r.am===m&&r.kind==='l')}${a==='bk'?' · ห้องชุด '+c(r=>r.am===m&&r.kind==='c'):''}</span></button>`).join('')}</div></div>`})()}
-   ${live.length?`<div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">⭐ ทรัพย์ของฉันที่${A.short} (${mine.length})</h2><p class="sync sub"></p>${mine.length?tableOf(mine):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่</p>'}</div>`:''}
+   ${live.length?`<details class="mine-all" ${mine.length&&mine.length<=10?'open':''}><summary style="font-size:15px">⭐ ทรัพย์ของฉันที่${A.short} (${mine.length}) <small>(กดเพื่อแสดง/ซ่อน)</small></summary><p class="sync sub"></p>${mine.length?tableOf(mine):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่</p>'}</details>`:''}
    ${nd?`<details class="mine-all" open><summary style="font-size:15px">📅 ทรัพย์ที่จะประมูลนัดถัดไป ${fd(nd)} · ${up.length} รายการ <small>(กดเพื่อซ่อน/แสดง)</small></summary>${tableOf(up)}</details>`:''}
   </div>`;
   $('sHome').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));

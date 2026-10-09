@@ -604,11 +604,16 @@ function renderList(){
   const rows=liveRows().filter(pass).sort((a,b)=>(a.next||'').localeCompare(b.next||'')||a.sp-b.sp);
   $('list').innerHTML=`<h2>รายการ (${rows.length})</h2><p class="sub">ใช้ตัวกรองเดียวกับแท็บแผนที่ · กดแถวที่มีหมุดเพื่อไปดูบนแผนที่</p>${tableOf(rows)}`; bindRows($('list'));
 }
+function exportMy(){const s=JSON.stringify({items:MY,notes:NOTES,saved:new Date().toISOString()},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'application/json'}));
+  a.download='รายการของฉัน_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove()}
+async function importMy(f){try{const d=JSON.parse(await f.text());Object.assign(MY,d.items||{});Object.assign(NOTES,d.notes||{});writeMy();refreshAll();alert('นำเข้าแล้ว '+Object.keys(d.items||{}).length+' รายการ · โน้ต '+Object.keys(d.notes||{}).length)}catch(e){alert('ไฟล์ไม่ถูกต้อง')}}
+document.addEventListener('click',e=>{if(e.target.id==='btnExp')exportMy()});document.addEventListener('change',e=>{if(e.target.id==='fImp'&&e.target.files[0])importMy(e.target.files[0])});
 function renderMine(){
   const R=ROUTES[route], all=DATA[R.area].filter(r=>kindOf(r)&&(!R.type||r.kind===R.type));
   const part=(k,t)=>{const rs=all.filter(r=>kindOf(r)===k).sort((a,b)=>(a.next||'9').localeCompare(b.next||'9'));return `<h2>${t} (${rs.length})</h2>${rs.length?tableOf(rs):'<p class="empty">ยังไม่มี</p>'}`};
   const closed=all.filter(r=>r.red), soldN=closed.filter(r=>r.soldPrice).length;
-  $('mine').innerHTML=`<p class="sync sub"></p>${closed.length?`<p class="note">ในรายการของคุณ ปิดไปแล้ว ${closed.length} รายการ (ขายได้ ${soldN}) · แถวที่ขายได้แสดงวันที่และราคาขายได้จริงจากรายงานผลการขายของกรมบังคับคดี</p>`:''}${part('bid','🎯 สนใจประมูล')}${part('watch','👁 เฝ้าดู')}`; bindRows($('mine')); setSync();
+  $('mine').innerHTML=`<div class="btns"><button type="button" class="btn" id="btnExp">📤 ส่งออกรายการของฉัน (ไฟล์)</button><label class="btn" for="fImp">📥 นำเข้ารายการ (ไฟล์)</label><input type="file" id="fImp" accept=".json,application/json" hidden></div>
+  <p class="sub">เว็บนี้บันทึกเฝ้าดู/โน้ต/รายการรอกลับมาไว้ในเครื่องที่ใช้ · ย้ายไปอีกเครื่อง (เช่น iPad) ให้กดส่งออกที่เครื่องเดิม แล้วนำเข้าที่เครื่องใหม่</p><p class="sync sub"></p>${closed.length?`<p class="note">ในรายการของคุณ ปิดไปแล้ว ${closed.length} รายการ (ขายได้ ${soldN}) · แถวที่ขายได้แสดงวันที่และราคาขายได้จริงจากรายงานผลการขายของกรมบังคับคดี</p>`:''}${part('bid','🎯 สนใจประมูล')}${part('watch','👁 เฝ้าดู')}`; bindRows($('mine')); setSync();
 }
 function parkRow(P){const g=P.g,s=P.snap||{},x=g?g.list[g.list.length-1]:null,cur=P.rows.find(r=>!r.red&&(r.d[0]||'')<=P.since)||P.rows[0];
   const img=g&&g.img?'img/'+g.img:(s.pic||(cur&&cur.pic)?'img/'+(s.pic||cur.pic):'');const ty=g?g.ty:(s.ty||''),tb=g?g.tb:s.tb,am=g?g.am:s.am,note=(g&&g.note)||s.note||'';
@@ -654,7 +659,8 @@ function renderUpd(){
   $('upd').innerHTML=h; bindRows($('upd'));
 }
 
-show(location.hash.slice(1)||'home');
-initDb();
+(async()=>{let empty=true;try{empty=!localStorage.getItem('led_my')&&!localStorage.getItem('led_notes')}catch(e){}
+  if(PUBLIC&&empty){try{const d=await fetch('my_default.json',{cache:'no-cache'}).then(r=>r.json());MY=Object.assign({},d.items||{});NOTES=Object.assign({},d.notes||{})}catch(e){}}
+  show(location.hash.slice(1)||'home');initDb();})();
 </script>
 </body></html>

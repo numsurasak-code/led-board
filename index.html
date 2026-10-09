@@ -243,7 +243,7 @@ async function load(area){
   SEEN[area]=sv; const byK=Object.fromEntries(sv.map(g=>[g.k,g]));
   DATA[area]=d.map(r=>{addHist(derive(r),HIST[area]);const g=byK[r.hk];if(g){r.seenG=g;r.spec=!!g.sp;g.cur=g.cur||[];g.cur.push(r);
     // ทรัพย์ที่เคยดู ถ้ายังอยู่ในประกาศ ให้ถือเป็นเฝ้าดูด้วย
-    r.seenBack=!r.red&&g.list.some(x=>!r.d.includes(x.first));}
+    r.seenBack=!r.red&&!!g.parked&&!g.active;}
     if(r.red&&r.soldPrice)r.won=1;return r});
 }
 
@@ -252,7 +252,7 @@ let MY={}, NOTES={}, saveMode='local', dbRef=null;
 try{MY=JSON.parse(localStorage.getItem('led_my')||'{}');NOTES=JSON.parse(localStorage.getItem('led_notes')||'{}')}catch(e){}
 // pw = เฝ้าดูจากโฟลเดอร์ Drive (ไฟล์ขึ้นต้น 0) · 'none' = ผู้ใช้เอาออกเอง
 const kindOf=r=>{const v=MY[r.k];return v==='none'?undefined:(v||(r.pw?'watch':undefined))};
-const noteOf=r=>NOTES[r.k]!=null?NOTES[r.k]:(r.pn||'');
+const noteOf=r=>NOTES[r.k]!=null?NOTES[r.k]:(r.pn||(r.seenG&&r.seenG.parked?r.seenG.note:'')||'');
 function setSync(){const t=saveMode==='db'?'บันทึกในบัญชีของคุณ เปิดจาก iPad/คอมก็เห็นเหมือนกัน':'บันทึกเฉพาะเครื่องนี้';document.querySelectorAll('.sync').forEach(e=>e.textContent=t)}
 async function initDb(){
   if(!window.claude||!claude.use) return;
@@ -272,6 +272,11 @@ function writeMy(){
   try{localStorage.setItem('led_my',JSON.stringify(MY));localStorage.setItem('led_notes',JSON.stringify(NOTES))}catch(e){}
   if(dbRef&&saveMode==='db'){const items=Object.assign({},MY),notes=Object.assign({},NOTES);writing=writing.then(()=>dbRef.set({items,notes})).catch(e=>{if(e&&e.code==='invalid_argument'){saveMode='local';dbRef=null;setSync()}})}
 }
+const WK=g=>'w|'+g.k; const isWait=g=>MY[WK(g)]==='wait';  // ผู้ใช้กดส่งกลับไปรอในคลัง
+const backNow=r=>r.seenBack&&!isWait(r.seenG);
+function toggleWait(k){const g=Object.values(SEEN).flat().find(x=>x.k===k);if(!g)return;if(isWait(g))delete MY[WK(g)];else MY[WK(g)]='wait';writeMy();refreshAll();
+  allRows().filter(r=>r.seenG===g&&r.mk&&r.mk.isPopupOpen&&r.mk.isPopupOpen()).forEach(r=>r.mk.setPopupContent(pop(r)))}
+document.addEventListener('click',e=>{const b=e.target.closest('button[data-wait]');if(!b)return;e.stopPropagation();toggleWait(b.dataset.wait)});
 const allRows=()=>Object.values(DATA).flatMap(d=>d||[]);
 function toggle(k,kind){const r=allRows().find(x=>x.k===k);if(!r)return;const cur=kindOf(r);
   if(cur===kind){if(r.pw)MY[k]='none';else delete MY[k]}else MY[k]=kind;writeMy();refreshAll();}
@@ -349,13 +354,17 @@ function renderHub(a){
     </div></div>
    ${(()=>{const ams=[...new Set(live.map(r=>r.am).filter(Boolean))].sort((x,y)=>c(r=>r.am===y)-c(r=>r.am===x));if(ams.length<2)return '';
      return `<div class="area"><h2>${a==='bk'?'แยกตามเขต':'แยกตามอำเภอ'}</h2><div class="cards am-cards">${ams.map(m=>`<button type="button" class="card" style="--c:var(--line)" data-am="${esc(m)}"><b>${esc(m)}</b><span class="n">${c(r=>r.am===m)}</span><span class="s">บ้าน ${c(r=>r.am===m&&r.kind==='h')} · ที่ดิน ${c(r=>r.am===m&&r.kind==='l')}${a==='bk'?' · ห้องชุด '+c(r=>r.am===m&&r.kind==='c'):''}</span></button>`).join('')}</div></div>`})()}
-   ${(()=>{const back=live.filter(r=>r.seenBack);if(!back.length)return '';return `<details class="mine-all alert" open><summary style="font-size:15px">🔔 ทรัพย์ที่เคยดูไว้ในประกาศรอบก่อน กลับมาประมูลอีก (${back.length})${back.some(r=>r.spec)?' · มี ⭐ สนใจพิเศษ '+back.filter(r=>r.spec).length:''} <small>(กดเพื่อแสดง/ซ่อน)</small></summary>${tableOf(back.sort((x,y)=>(y.spec?1:0)-(x.spec?1:0)||(x.next||'').localeCompare(y.next||'')))}</details>`})()}
+   ${(()=>{const S=SEEN[a]||[];if(!S.length)return '';
+     const back=live.filter(backNow).sort((x,y)=>(y.spec?1:0)-(x.spec?1:0)||(x.next||'').localeCompare(y.next||''));
+     const sp=S.filter(g=>g.sp&&!(g.cur||[]).some(backNow));
+     return `${back.length?`<details class="mine-all alert" open><summary style="font-size:15px">🔔 ทรัพย์ที่รอไว้ กลับมาประมูลแล้ว (${back.length}) <small>(กดหมุดแล้วเลือก ⏳ กลับไปรอ ถ้ายังอยากรอต่อ)</small></summary>${tableOf(back)}</details>`:''}
+     <details class="mine-all" open><summary style="font-size:15px">⭐ สนใจพิเศษ · รอกลับมา (${sp.length})</summary>${sp.map(seenRow).join('')}</details>`})()}
    ${live.length?`<details class="mine-all" ${mine.length&&mine.length<=10?'open':''}><summary style="font-size:15px">⭐ ทรัพย์ของฉันที่${A.short} (${mine.length}) <small>(กดเพื่อแสดง/ซ่อน)</small></summary><p class="sync sub"></p>${mine.length?tableOf(mine):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่</p>'}</details>`:''}
    ${nd?`<details class="mine-all" open><summary style="font-size:15px">📅 ทรัพย์ที่จะประมูลนัดถัดไป ${fd(nd)} · ${up.length} รายการ <small>(กดเพื่อซ่อน/แสดง)</small></summary>${tableOf(up)}</details>`:''}
   </div>`;
   $('sHome').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
   $('sHome').querySelectorAll('[data-am]').forEach(b=>b.onclick=()=>{PRE_AM=b.dataset.am;go(a+'-all')});
-  bindRows($('sHome')); setSync();
+  bindRows($('sHome')); bindSeen($('sHome')); setSync();
 }
 let PRE_AM='';
 function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำดับ</th><th>ประเภท</th><th>คดี</th><th>โฉนด</th><th class="n">ราคาประเมิน</th><th class="n">ขายได้</th><th class="n">%</th></tr></thead><tbody>`+
@@ -363,7 +372,7 @@ function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำด�
 
 // ---------- filters ----------
 function liveRows(){const R=ROUTES[route];return DATA[R.area].filter(r=>!r.red&&!r.ns3&&(!R.type||r.kind===R.type))}
-const pass=r=>(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?!!r.seenG:kindOf(r)===F.mine));
+const pass=r=>(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?!!(r.seenG&&r.seenG.parked):kindOf(r)===F.mine));
 function chips(id,opts,prop){const el=$(id);el.innerHTML=opts.map(([v,l])=>`<button type="button" class="chip" aria-pressed="${F[prop]===v}" data-v="${v}">${l}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;F[prop]=b.dataset.v;chips(id,opts,prop);renderRoute(true)}}
 function buildRail(){
   const R=ROUTES[route], A=AREAS[R.area], live=liveRows();
@@ -393,7 +402,7 @@ function buildRail(){
    chips('fLot',[['','ทุกล็อต'],...lots.map(l=>[l,l.replace('ล็อต ','')+' ('+live.filter(r=>r.lotTxt===l).length+')'])],'lot');}
   chips('fDebt',[['','ทั้งหมด'],['free','ปลอดภาระ'],['debt','ติดจำนอง']],'debt');
   chips('fStat',[['','ทั้งหมด'],['new','🆕 ทรัพย์ใหม่ ('+live.filter(r=>r.isNew).length+')'],['slip','หลุดมา ≥2 นัด ('+live.filter(r=>r.nob>=2).length+')'],['relist','🔁 กลับมาอีกครั้ง ('+live.filter(r=>r.relist).length+')'],['old','คดีเก่า ≥5 ปี ('+live.filter(r=>r.caseAge>=5).length+')']],'stat');
-  chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู'],...(SEEN[R.area]&&SEEN[R.area].length?[['spec','⭐ สนใจพิเศษ'],['seen','👀 เคยดูมาก่อน']]:[])],'mine');
+  chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู'],...(SEEN[R.area]&&SEEN[R.area].length?[['spec','⭐ สนใจพิเศษ'],['seen','⏳ เคยจอดรอไว้']]:[])],'mine');
   const fillTb=()=>{const L=live.filter(r=>!F.am||r.am===F.am);const tbs=[...new Set(L.map(r=>r.tbx))].sort();$('fTb').innerHTML=`<option value="">ทั้งหมด</option>`+tbs.map(t=>`<option value="${esc(t)}">${esc(F.am?t.split(' · ').pop():t)} (${L.filter(r=>r.tbx===t).length})</option>`).join('')};
   fillTb();
   if($('fAm')){$('fAm').value=F.am;fillTb();}
@@ -428,10 +437,10 @@ const colorOf=r=>r.debtOn?'--debt':r.condo?'--condo':r.house?'--house':'--land';
 function drawPins(fit){
   pinLayer.clearLayers(); const list=liveRows().filter(pass); const pts=[];
   // ทรัพย์ที่เฝ้าดู/สนใจแต่ปิดแล้ว (ขาย/งด/ถอน) แสดงเป็นหมุดสีเทา จะได้ไม่หายไปเฉยๆ
-  const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&(kindOf(r)||r.spec)&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)&&(F.mine!=='spec'||r.spec)&&(F.mine!=='seen'||r.seenG)&&(!F.mine||F.mine==='spec'||F.mine==='seen'||kindOf(r)===F.mine)).forEach(r=>{
+  const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&(kindOf(r)||r.spec)&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)&&(F.mine!=='spec'||r.spec)&&(F.mine!=='seen'||(r.seenG&&r.seenG.parked))&&(!F.mine||F.mine==='spec'||F.mine==='seen'||kindOf(r)===F.mine)).forEach(r=>{
     r.mk=(r.won?L.marker([r.lat,r.lon],{icon:MONEY,zIndexOffset:500}):L.circleMarker([r.lat,r.lon],{radius:7,color:r.spec?css('--brand'):css('--surface'),weight:r.spec?3:2,fillColor:css('--mut'),fillOpacity:.7})).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
   // สนใจพิเศษที่ยังไม่กลับมาประมูล (อยู่ในคลังเท่านั้น)
-  if(F.mine==='spec'||F.mine==='seen') (SEEN[R0.area]||[]).filter(g=>!g.cur&&g.lat&&(F.mine==='seen'||g.sp)).forEach(g=>{
+  if(F.mine==='spec'||F.mine==='seen') (SEEN[R0.area]||[]).filter(g=>!(g.cur||[]).some(r=>!r.red)&&!(g.cur||[]).some(r=>r.lat)&&g.lat&&(F.mine==='seen'?g.parked:g.sp)).forEach(g=>{
     L.marker([g.lat,g.lon],{icon:g.won?MONEY:WAIT}).bindPopup(()=>popSeen(g),{maxWidth:300}).addTo(pinLayer);pts.push([g.lat,g.lon])});
   list.filter(r=>r.lat).forEach(r=>{const m=kindOf(r);
     r.mk=L.circleMarker([r.lat,r.lon],{radius:m?10:8,color:m==='bid'?css('--debt'):m==='watch'?css('--nobid'):css('--surface'),weight:m?4:2,
@@ -447,8 +456,9 @@ function imgLinks(r){if(!r.pic)return '';const b=r.pic.replace(/p\.jpg$/,''),roo
   return `<a class="btn" target="_blank" rel="noopener" href="${root}${esc(r.pic)}">📷 รูปทรัพย์</a><a class="btn" target="_blank" rel="noopener" href="${mroot}${esc(b)}m.jpg">แผนที่สังเขป</a><a class="btn" target="_blank" rel="noopener" href="${mroot}${esc(b)}j.jpg">แผนที่โจทก์</a>`}
 function histPrev(r){const cur=new Set(r.d);const prev=r.H.filter(x=>!cur.has(x[0]));if(!prev.length)return '';
   return `<details class="prev"><summary>📜 ประวัติก่อนล็อตนี้ (${r.prevN} นัด)</summary>${prev.map(x=>`<div>${fd(x[0])} · ลำดับ ${esc(x[1])} · ${esc(x[2])}${x[3]?' '+fm(x[3])+' บ.':''}</div>`).join('')}</details>`}
-function seenBox(g,r){const L=g.list;return `<div class="seenbox">${g.sp?'<b>⭐ สนใจพิเศษ</b> · ':''}👀 เคยดูไว้ตั้งแต่ ${fd(g.firstSeen)}${g.n>1?` · ประกาศมาแล้ว ${g.n} รอบ`:''}${r&&r.seenBack?' · <b>กลับมาประมูลอีกครั้ง</b>':''}${g.note?`<br><small>📝 ${esc(g.note)}</small>`:''}
-  ${L.length>1?`<details><summary>ประวัติที่เคยดู (${L.length} ไฟล์)</summary>${L.map(x=>`<div><small>${fd(x.first)} · ลำดับ ${esc(x.seq)} · ประเมิน ${fm(x.pr)}${x.tag?' · '+esc(x.tag):''}</small></div>`).join('')}</details>`:''}</div>`}
+function seenBox(g,r){const L=g.list;return `<div class="seenbox">${g.sp?'<b>⭐ สนใจพิเศษ</b> · ':''}👀 เคยดูไว้ตั้งแต่ ${fd(g.firstSeen)}${g.n>1?` · ประกาศมาแล้ว ${g.n} รอบ`:''}${r&&r.seenBack?(isWait(g)?' · <b>⏳ ส่งกลับไปรอในคลังแล้ว</b>':' · <b>🔔 กลับมาประมูลแล้ว</b>'):''}${g.note?`<br><small>📝 ${esc(g.note)}</small>`:''}
+  ${L.length>1?`<details><summary>ประวัติที่เคยดู (${L.length} ไฟล์)</summary>${L.map(x=>`<div><small>${fd(x.first)} · ลำดับ ${esc(x.seq)} · ประเมิน ${fm(x.pr)}${x.tag?' · '+esc(x.tag):''}</small></div>`).join('')}</details>`:''}
+  ${r&&r.seenBack?`<div class="btns"><button type="button" class="btn" data-wait="${esc(g.k)}">${isWait(g)?'↩️ เอาออกจากคลังรอ (แจ้งเตือนอีกครั้ง)':'⏳ กลับไปรอในคลัง'}</button></div>`:''}</div>`}
 function popSeen(g){const x=g.list[g.list.length-1];return `<div class="pop">${g.won?`<div class="wonbar">✅ จบแล้ว · ขายได้ <b>${fm(g.won.price)} บ.</b> (${fd(g.won.date)})${g.won.pr?` · ${Math.round(g.won.price/g.won.pr*100)}% ของราคาประเมิน`:''}</div>`:''}
   <h3>${g.sp?'⭐ ':''}${esc(g.ty||'ทรัพย์')} · ยังไม่กลับมาประมูล</h3>
   ${PUBLIC&&g.img?`<img class="ph" src="img/${esc(g.img)}" alt="" loading="lazy">`:''}${seenBox(g)}
@@ -500,7 +510,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button[data-t]')
 const kindTh=r=>`<span class="dot" style="background:var(${colorOf(r)})"></span> ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดิน'}${r.debtOn?' <span class="tag t-wd">ติดจำนอง</span>':''}`;
 function tableOf(rows,withArea){
   return `<div class="tbl"><table><thead><tr><th></th><th>นัดถัดไป</th><th>ลำดับ / ล็อต</th><th>ประเภท</th>${withArea?'<th>พื้นที่</th>':''}<th>${withArea?'ตำบล/แขวง':'ตำบล/แขวง'}</th><th>เนื้อที่</th><th class="n">ราคาประเมิน</th><th class="n">ราคาเริ่มต้น</th><th>หมุด</th></tr></thead><tbody>
-  ${rows.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${r.spec?'⭐':''}${m==='bid'?'🎯':m==='watch'?'👁':''}${r.seenG?'<br><small title="เคยดูไว้">👀</small>':''}</td>
+  ${rows.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${r.spec?'⭐':''}${m==='bid'?'🎯':m==='watch'?'👁':''}${r.seenG&&r.seenG.parked?'<br><small title="เคยจอดรอไว้">⏳</small>':''}</td>
    <td>${r.red?(r.soldPrice?`<span class="tag t-sold">ขายได้ ${fd(r.soldDate)}</span><br><b>${fm(r.soldPrice)} บ.</b> <small>${r.pr?Math.round(r.soldPrice/r.pr*100)+'% ของราคาประเมิน':''}</small>`:`<span class="tag t-sold">ปิดแล้ว: ${st(r.s.find(c=>c&&c!==3)||r.lastCode)[0]}</span>`):fd(r.next)+`<br><small>${r.roundTxt}</small>${r.isNew?' <span class="tag t-new">ใหม่</span>':''}${r.nob?`<br><span class="tag t-nobid">หลุด ${r.nob} นัด</span>`:''}${r.relist?` <span class="tag t-relist">🔁 ${r.prevN}</span>`:''}`}</td>
    <td>${PUBLIC&&r.pic?`<img class="th" src="img/${esc(r.pic)}" alt="" loading="lazy" onerror="this.remove()">`:''}${esc(r.seq)}<br><span class="tag t-lot">${esc(r.lotTxt)}</span></td><td>${kindTh(r)}</td>${withArea?`<td>${r.area==='cy'?'ชัยภูมิ':'กทม.'}</td>`:''}
    <td>${esc(r.tbx)}${noteOf(r)?`<br><small>📝 ${esc(noteOf(r))}</small>`:''}</td><td>${esc(r.condo?r.ar:r.a)}</td><td class="n">${fm(r.pr)}</td><td class="n"><b>${fm(r.sp)}</b><br><small>${r.spSrc}</small></td>
@@ -570,21 +580,23 @@ function renderMine(){
   const closed=all.filter(r=>r.red), soldN=closed.filter(r=>r.soldPrice).length;
   $('mine').innerHTML=`<p class="sync sub"></p>${closed.length?`<p class="note">ในรายการของคุณ ปิดไปแล้ว ${closed.length} รายการ (ขายได้ ${soldN}) · แถวที่ขายได้แสดงวันที่และราคาขายได้จริงจากรายงานผลการขายของกรมบังคับคดี</p>`:''}${part('bid','🎯 สนใจประมูล')}${part('watch','👁 เฝ้าดู')}`; bindRows($('mine')); setSync();
 }
-function renderSeen(){
-  const S=SEEN[ROUTES[route].area]||[];
-  const row=g=>{const x=g.list[g.list.length-1],live=(g.cur||[]).filter(r=>!r.red);
+function seenRow(g){const x=g.list[g.list.length-1],live=(g.cur||[]).filter(r=>!r.red);
     return `<div class="seenrow" ${live.length&&live[0].lat?`data-k="${esc(live[0].k)}" data-a="${live[0].area}"`:''}>${PUBLIC&&g.img?`<img class="th" src="img/${esc(g.img)}" alt="" loading="lazy">`:''}
     <div><b>${g.sp?'⭐ ':''}${esc(g.ty||'')} · ต.${esc(g.tb)} อ.${esc(g.am)}</b> <small>โฉนด ${esc(g.dn)} · ${esc(g.cs)}</small><br>
-    ${g.won?`<span class="tag t-sold">💵 ขายได้ ${fm(g.won.price)} บ. (${fd(g.won.date)})</span> `:''}${live.length?`<span class="tag t-new">🔔 กลับมาประมูล นัด ${fd(live[0].next)} (${live[0].roundTxt})</span> `:(g.cur?'<span class="tag t-wd">ปิดแล้ว</span> ':'<span class="tag t-pend">⏳ ยังไม่กลับมา</span> ')}
+    ${g.won?`<span class="tag t-sold">💵 จบแล้ว ขายได้ ${fm(g.won.price)} บ. (${fd(g.won.date)}) · ${g.won.pr?Math.round(g.won.price/g.won.pr*100)+'%':''}</span> `:''}${live.length?`<span class="tag t-pend">⏳ รอต่อ · ตอนนี้ประมูลอยู่ นัด ${fd(live[0].next)}</span> <button type="button" class="btn" data-wait="${esc(g.k)}">↩️ แจ้งเตือนอีกครั้ง</button> `:(g.won?'':'<span class="tag t-pend">⏳ ยังไม่กลับมา</span> ')}
     <span class="tag t-round">เคยดูตั้งแต่ ${fd(g.firstSeen)}${g.n>1?' · '+g.n+' รอบ':''}</span> <small>ประเมินล่าสุด ${fm(x.pr)}${x.db?' · หนี้จำนอง '+fm(x.db):''}</small>
-    ${g.note?`<br><small>📝 ${esc(g.note)}</small>`:''}</div></div>`};
-  const sec=(t,arr,open)=>arr.length?`<details class="mine-all" ${open?'open':''}><summary style="font-size:15px">${t} (${arr.length})</summary>${arr.map(row).join('')}</details>`:'';
-  const back=S.filter(g=>(g.cur||[]).some(r=>r.seenBack));
-  $('seen').innerHTML=`<h2>📁 คลังทรัพย์ที่เคยดู</h2><p class="sub">เก็บจากไฟล์ PDF ในโฟลเดอร์ Drive (${S.length} ทรัพย์) · ทรัพย์ไหนกลับมาประมูลจะขึ้น 🔔 และในหมุดจะบอกว่าเคยดูมาก่อน</p>
-   ${sec('⭐ สนใจพิเศษ',S.filter(g=>g.sp),true)}${sec('🔔 กลับมาประมูลแล้ว',back,true)}${sec('🔁 ประกาศมาหลายรอบ',S.filter(g=>g.n>1),false)}
-   ${sec('💵 ขายไปแล้ว (ดูราคาแข่งขัน)',S.filter(g=>g.won),false)}${sec('⏳ ยังไม่กลับมา',S.filter(g=>!g.cur&&!g.won),false)}${sec('ทั้งหมด',S,false)}`;
-  $('seen').querySelectorAll('.seenrow[data-k]').forEach(el=>el.onclick=()=>{const r=DATA[el.dataset.a].find(x=>x.k===el.dataset.k);if(!r)return;view='map';renderRoute(false);map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),250)});
+    ${g.note?`<br><small>📝 ${esc(g.note)}</small>`:''}</div></div>`}
+function renderSeen(){
+  const S=(SEEN[ROUTES[route].area]||[]).filter(g=>g.parked&&!(g.cur||[]).some(backNow));  // ไม่แสดงตัวที่กลับมาแล้ว (อยู่ในกล่องแจ้งเตือน)
+  const sec=(t,arr,open)=>arr.length?`<details class="mine-all" ${open?'open':''}><summary style="font-size:15px">${t} (${arr.length})</summary>${arr.map(seenRow).join('')}</details>`:'';
+  const sp=S.filter(g=>g.sp), won=S.filter(g=>!g.sp&&g.won), rest=S.filter(g=>!g.sp&&!g.won);
+  $('seen').innerHTML=`<h2>📁 คลังทรัพย์ที่รอกลับมา</h2><p class="sub">ทรัพย์ที่จอดรอไว้ (จากโฟลเดอร์ เดี๋ยวมาใหม่ / รอดู พิเศษ / จบแล้ว) ที่ยังไม่กลับมาประมูล · ถ้ากลับมาจะย้ายไปกล่อง 🔔 ในหน้าสำนักงาน</p>
+   ${sec('⭐ สนใจพิเศษ',sp,true)}${sec('⏳ รอกลับมา',rest.sort((a,b)=>b.n-a.n),true)}${sec('💵 ขายไปแล้ว (ดูราคาแข่งขัน)',won,false)}`;
+  bindSeen($('seen'));
 }
+function bindSeen(el){el.querySelectorAll('.seenrow[data-k]').forEach(x=>x.onclick=e=>{if(e.target.closest('button'))return;const r=DATA[x.dataset.a].find(y=>y.k===x.dataset.k);if(!r)return;
+  if(route.startsWith('o-')){location.hash=r.area+'-all';setTimeout(()=>{map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),300)},1500);return}
+  view='map';renderRoute(false);map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),250)})}
 function renderUpd(){
   const R=ROUTES[route], rows=DATA[R.area].filter(r=>!R.type||r.kind===R.type);
   const recent=[...new Set(rows.filter(r=>r.li>=0).map(r=>r.d[r.li]))].sort().slice(-3).reverse();

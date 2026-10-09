@@ -85,6 +85,7 @@ select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--line
 .t-sold{background:var(--sold-bg);color:var(--ink)}.t-nobid{background:var(--nobid-bg);color:var(--nobid)}.t-stop{background:var(--stop-bg);color:var(--stop)}.t-wd{background:var(--wd-bg);color:var(--wd)}.t-pend{background:var(--pend-bg);color:var(--pend)}
 .ph{width:100%;max-height:180px;object-fit:cover;border-radius:8px;margin:2px 0 6px;background:var(--surface2);display:block}
 .round{display:flex;gap:4px;flex-wrap:wrap;margin:-2px 0 6px}
+.heat td[style]{background:color-mix(in oklab,var(--house) calc(var(--h)*70%),var(--surface))}.heat td small{color:inherit;opacity:.8}
 .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:2px}
 .kpi b{font-size:26px;font-variant-numeric:tabular-nums;line-height:1.15}.kpi span{font-size:12px;color:var(--mut)}
@@ -581,10 +582,17 @@ async function renderAnalysis(area){
    ${A.loc.map(x=>`<tr><td>${esc(x[0])}</td><td class="n">${x[1]}</td><td class="n">${x[2]} <small>(${Math.round(x[2]/x[1]*100)}%)</small></td><td class="n">${x[3]}</td><td class="n">${x[4]}</td></tr>`).join('')}
    </tbody></table></div>
    <p class="sub">ตำบลที่ขายออกน้อยและทรัพย์วนกลับมาบ่อย อาจเป็นเพราะทำเลหรือสภาพทรัพย์ · ตำบลที่ขายออกเร็วมีโอกาสโดนสู้ราคามากกว่า</p></section>`:''}
-  ${A.pl&&A.pl.length?`<section class="ana"><h3>7. ใครเป็นโจทก์ (ผู้ฟ้อง) · บ้าน</h3>
+  ${A.pl&&A.pl.length?`<section class="ana"><h3>7. วิเคราะห์ตามโจทก์ (ผู้ฟ้อง) · บ้าน</h3>
+   <p class="sub">รายงานของกรมบังคับคดีไม่บอกชื่อผู้ซื้อ (มีแค่โจทก์ ผลการขาย และราคา) · ถ้าโจทก์รายไหน "ขายออกสูง + ปิดที่ราคาเริ่มต้นเกือบทั้งหมด + ขายตั้งแต่นัดแรก" มักแปลว่าโจทก์เข้าซื้อเองที่ราคาเริ่มต้น</p>
+   <div class="two"><div><h4>% ขายออก (บ้านที่ขึ้นประมูล → ขายได้)</h4>${bars(A.pl.filter(x=>x[1]>=10).map(x=>[x[0],Math.round(x[2]/x[1]*100),'('+x[2]+'/'+x[1]+')']),{unit:'%'})}</div>
+   <div><h4>ที่ขายได้ ปิดที่ราคาเริ่มต้นพอดี (ไม่มีใครสู้)</h4>${bars(A.pl.filter(x=>x[2]>=3).map(x=>[x[0],Math.round(x[3]/x[2]*100),'('+x[3]+'/'+x[2]+')']),{unit:'%'})}</div></div>
+   ${A.plm&&A.plm.length?(()=>{const G=['ธอส.','ออมสิน','ธนาคารอื่น','บัตร/ลีสซิ่ง','อื่นๆ'];return `<h4>% ขายออกรายเดือน (เข้มขึ้น = ขายออกมากขึ้น · ตัวเลขในวงเล็บ = ขายได้/ขึ้นประมูล)</h4>
+   <div class="tbl"><table class="heat" style="min-width:520px"><thead><tr><th>โจทก์</th>${A.plm.map(m=>`<th class="n">${TH[+m[0].slice(4,6)]} ${m[0].slice(2,4)}</th>`).join('')}</tr></thead><tbody>
+   ${G.map(g=>`<tr><td>${g}</td>${A.plm.map(m=>{const v=m[1][g];if(!v||!v[0])return '<td class="n">-</td>';const p=Math.round(v[1]/v[0]*100);return `<td class="n" style="--h:${Math.min(1,p/60).toFixed(2)}" title="${g} ${v[1]}/${v[0]}"><b>${p}%</b><br><small>(${v[1]}/${v[0]})</small></td>`}).join('')}</tr>`).join('')}</tbody></table></div>`})():''}
    <div class="tbl"><table style="min-width:620px"><thead><tr><th>โจทก์</th><th class="n">บ้านที่ขึ้นประมูล</th><th class="n">ขายได้</th><th class="n">% ขายออก</th><th class="n">ปิดที่ราคาเริ่มต้น</th><th class="n">สู้ราคา &gt;10%</th><th class="n">ขายนัดแรกที่ขึ้น</th><th class="n">ราคาขาย/ประเมิน</th></tr></thead><tbody>
    ${A.pl.map(x=>`<tr><td>${esc(x[0])}</td><td class="n">${x[1]}</td><td class="n">${x[2]}</td><td class="n"><b>${Math.round(x[2]/x[1]*100)}%</b></td><td class="n">${x[3]}/${x[2]}</td><td class="n">${x[4]}</td><td class="n">${x[5]}</td><td class="n">${pc(x[6])}</td></tr>`).join('')}</tbody></table></div>
-   <p class="sub">รายงานของกรมไม่บอกว่าใครเป็นผู้ซื้อ · ถ้าโจทก์รายไหน "ขายออกสูง + ปิดที่ราคาเริ่มต้นเกือบทั้งหมด + ขายตั้งแต่นัดแรก" มักแปลว่าโจทก์เข้าซื้อเองที่ราคาเริ่มต้น (เช่น ธอส.) ถ้าอยากได้ทรัพย์ของโจทก์แบบนี้ ต้องเตรียมสู้ตั้งแต่นัดแรก ไม่ควรรอให้ราคาลด</p></section>`:''}
+   <p class="sub"><b>อ่านผล:</b> ธอส. ขายออกสูงและปิดที่ราคาเริ่มต้นเกือบทั้งหมดตั้งแต่นัดแรก → ต้องเตรียมสู้ตั้งแต่นัดแรก · ออมสิน/กรุงไทย ขายออกน้อย ปิดราว 70–80% ของราคาประเมิน → รอให้หลุดหลายนัดได้ · บริษัทบริหารสินทรัพย์ มีคนสู้ราคาแรง · ข้อมูลสะสม ${A.ledgerN?fm(A.ledgerN)+' แถว':''} (เก็บต่อเนื่อง ไม่ลบ) ตัวเลขจะแม่นขึ้นเรื่อยๆ</p>
+   <p><a class="btn" href="https://numsurasak-code.github.io/led-board/data/%E0%B8%9C%E0%B8%A5%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%A1%E0%B8%B9%E0%B8%A5%E0%B8%AA%E0%B8%B0%E0%B8%AA%E0%B8%A1_%E0%B8%8A%E0%B8%B1%E0%B8%A2%E0%B8%A0%E0%B8%B9%E0%B8%A1%E0%B8%B4.xlsx" target="_blank" rel="noopener">📥 ดาวน์โหลดตารางผลประมูลสะสม (Excel)</a> <small>ทุกนัด ทุกทรัพย์ ชัยภูมิ + ภูเขียว · มีแผ่นสรุปตามโจทก์</small></p></section>`:''}
   <section class="ana"><h3>สรุปไว้วางแผนประมูล</h3><ul class="tips">
    <li>บ้านส่วนใหญ่ปิดที่ราคาเริ่มต้นของนัดนั้น ถ้าทรัพย์ไม่ฮิต การรอให้ถึงนัดที่ 4 (เริ่มที่ 70%) มักคุ้มกว่า แต่เสี่ยงคนอื่นเข้าก่อน</li>
    <li>บ้านราคาประเมินต่ำกว่า 3 แสน ขายได้ราวราคาประเมินเต็ม (ค่ากลาง ${pc(H.band[0][3])}) แปลว่ามีคนแย่งกัน ส่วน 3–6 แสนปิดได้ต่ำสุด (ค่ากลาง ${pc(H.band[1][3])})</li>

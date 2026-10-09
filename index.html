@@ -102,6 +102,11 @@ select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--line
 .leaflet-control-layers-toggle{background-image:none!important;width:auto!important;height:auto!important;padding:6px 10px;font-size:13px;color:var(--ink);text-decoration:none}
 .leaflet-control-layers-toggle::after{content:'🛰️ ดาวเทียม / แผนที่'}
 .leaflet-control-layers{background:var(--surface);color:var(--ink)}
+.emo{font-size:22px;line-height:1;text-align:center;filter:drop-shadow(0 1px 1px #0006)}.emo.star{font-size:12px}
+.wonbar{background:var(--land);color:#fff;border-radius:6px;padding:6px 8px;margin:-2px 0 6px;font-size:13px}
+.seenbox{background:var(--stop-bg);color:var(--ink);border-radius:6px;padding:6px 8px;margin:4px 0 6px;font-size:12px}.seenbox details{margin-top:4px}
+.seenrow{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--line);align-items:flex-start}.seenrow[data-k]{cursor:pointer}.seenrow .th{flex:none}
+.mine-all.alert{border-color:var(--nobid)}
 .t-lot{background:var(--pend-bg);color:var(--pend);font-weight:600}
 .t-relist{background:var(--stop-bg);color:var(--stop)}.t-old{background:var(--surface2);color:var(--mut);border:1px solid var(--line)}
 .prev{border:0;padding:0;margin-top:6px;background:transparent}.prev summary{font-weight:500;font-size:12px;color:var(--mut)}.prev div{font-size:12px}
@@ -148,6 +153,7 @@ details .tbl{border:0;margin-top:8px}
     <button type="button" role="tab" data-v="list">รายการ</button>
     <button type="button" role="tab" data-v="mine">⭐ ของฉัน <span class="badge" id="bMine">0</span></button>
     <button type="button" role="tab" data-v="upd">🔔 อัปเดตงวดที่แล้ว</button>
+    <button type="button" role="tab" data-v="seen" id="tabSeen">📁 คลังที่เคยดู</button>
   </div>
   <main>
     <section class="screen" id="sHome"></section>
@@ -158,6 +164,7 @@ details .tbl{border:0;margin-top:8px}
     <section class="screen" id="sList" hidden><div class="wrap" id="list"></div></section>
     <section class="screen" id="sMine" hidden><div class="wrap" id="mine"></div></section>
     <section class="screen" id="sUpd" hidden><div class="wrap" id="upd"></div></section>
+    <section class="screen" id="sSeen" hidden><div class="wrap" id="seen"></div></section>
   </main>
 </div>
 
@@ -167,7 +174,7 @@ const PUBLIC=!!window.PUBLIC;
 const ARCH=window.ARCH||'';  // ลิงก์คลังรูปบน GitHub (ใส่หลังเปิด Pages)
 const TODAY='25691008';
 const AREAS={
-  cy:{name:'ชัยภูมิ (ทุกอำเภอ)',office:'สำนักงานบังคับคดีจังหวัดชัยภูมิ',short:'ชัยภูมิ',pid:'306',live:'https://live.led.go.th/?branch=chaiyaphum',ana:'analysis_cy.json',types:['h','l'],data:'data_cy.json',base:'base_cy.json',hist:'hist_cy.json',center:[15.85,101.95],zoom:10,
+  cy:{name:'ชัยภูมิ (ทุกอำเภอ)',office:'สำนักงานบังคับคดีจังหวัดชัยภูมิ',short:'ชัยภูมิ',pid:'306',live:'https://live.led.go.th/?branch=chaiyaphum',ana:'analysis_cy.json',types:['h','l'],data:'data_cy.json',base:'base_cy.json',hist:'hist_cy.json',seen:'seen_cy.json',center:[15.85,101.95],zoom:10,
       sched:'ประมูลทุกวันอังคาร 10.00 น. ณ สนง.บังคับคดีจังหวัดชัยภูมิ (ถ.อบจ.สาย 1) · ตรงวันหยุดจะเลื่อน เช่น 12 ต.ค. 69 เป็นวันจันทร์',
       note:'หมุดทึบ = พิกัดแปลงจริงจาก LandsMaps · หมุดเส้นประ = ตำแหน่งประมาณกลางตำบล (ยังไม่ได้ค้นพิกัดจริง)'},
   pk:{name:'ชัยภูมิ สาขาภูเขียว',short:'ภูเขียว',office:'สำนักงานบังคับคดีจังหวัดชัยภูมิ สาขาภูเขียว',pid:'310',ana:'analysis_pk.json',types:['h','l'],
@@ -198,7 +205,7 @@ const css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim
 const $=id=>document.getElementById(id);
 
 // ---------- data ----------
-const DATA={cy:null,pk:null,bk:null}, BASE={}, HIST={}, ANA={};
+const DATA={cy:null,pk:null,bk:null}, BASE={}, HIST={}, ANA={}, SEEN={};
 function derive(r){
   r.k=(r.lot+'|'+r.seq+'|'+r.dn).replace(/[^\w฀-๿|.\- ]/g,'');
   r.condo=/ห้องชุด/.test(r.ty); r.house=!r.condo&&/สิ่งปลูกสร้าง/.test(r.ty); r.land=!r.condo&&!r.house;
@@ -231,7 +238,13 @@ async function load(area){
   if(DATA[area]) return;
   const [d,b,h]=await Promise.all([fetch(AREAS[area].data,{cache:'no-cache'}).then(r=>r.json()),fetch(AREAS[area].base,{cache:'no-cache'}).then(r=>r.json()),
     AREAS[area].hist?fetch(AREAS[area].hist,{cache:'no-cache'}).then(r=>r.json()).catch(()=>null):null]);
-  HIST[area]=h||{h:{},sold:[],stat:{}}; BASE[area]=b; DATA[area]=d.map(r=>addHist(derive(r),HIST[area]));
+  HIST[area]=h||{h:{},sold:[],stat:{}}; BASE[area]=b;
+  let sv=[]; if(AREAS[area].seen){try{sv=await fetch(AREAS[area].seen,{cache:'no-cache'}).then(r=>r.json())}catch(e){}}
+  SEEN[area]=sv; const byK=Object.fromEntries(sv.map(g=>[g.k,g]));
+  DATA[area]=d.map(r=>{addHist(derive(r),HIST[area]);const g=byK[r.hk];if(g){r.seenG=g;r.spec=!!g.sp;g.cur=g.cur||[];g.cur.push(r);
+    // ทรัพย์ที่เคยดู ถ้ายังอยู่ในประกาศ ให้ถือเป็นเฝ้าดูด้วย
+    r.seenBack=!r.red&&g.list.some(x=>!r.d.includes(x.first));}
+    if(r.red&&r.soldPrice)r.won=1;return r});
 }
 
 // ---------- my lists (db per person, fallback to this device) ----------
@@ -284,14 +297,16 @@ async function show(r){
   $('tabs').hidden=false; $('title').textContent=R.title; $('sched').innerHTML=esc(AREAS[R.area].sched)+(AREAS[R.area].live?` · <a href="${AREAS[R.area].live}" target="_blank" rel="noopener" style="color:inherit;font-weight:600">🔴 ดูประมูลสด</a>`:'');
   buildRail(); drawBase(R.area); renderRoute(true);
 }
-function screen(id){['sHome','sMap','sList','sMine','sUpd'].forEach(s=>$(s).hidden=s!==id)}
+function screen(id){['sHome','sMap','sList','sMine','sUpd','sSeen'].forEach(s=>$(s).hidden=s!==id)}
 function renderRoute(fit){
   document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.v===view));
-  screen({map:'sMap',list:'sList',mine:'sMine',upd:'sUpd'}[view]);
+  screen({map:'sMap',list:'sList',mine:'sMine',upd:'sUpd',seen:'sSeen'}[view]);
+  $('tabSeen').hidden=!(SEEN[ROUTES[route].area]||[]).length;
   if(view==='map'){map.invalidateSize();drawPins(fit)}
   if(view==='list')renderList();
   if(view==='mine')renderMine();
   if(view==='upd')renderUpd();
+  if(view==='seen')renderSeen();
   $('bMine').textContent=DATA[ROUTES[route].area].filter(r=>kindOf(r)&&(!ROUTES[route].type||r.kind===ROUTES[route].type)).length; setSync();
 }
 function refreshAll(){ if(route==='home')renderHome(); else if(ROUTES[route].hub)renderHub(ROUTES[route].area); else if(!ROUTES[route].page)renderRoute(false); }
@@ -334,6 +349,7 @@ function renderHub(a){
     </div></div>
    ${(()=>{const ams=[...new Set(live.map(r=>r.am).filter(Boolean))].sort((x,y)=>c(r=>r.am===y)-c(r=>r.am===x));if(ams.length<2)return '';
      return `<div class="area"><h2>${a==='bk'?'แยกตามเขต':'แยกตามอำเภอ'}</h2><div class="cards am-cards">${ams.map(m=>`<button type="button" class="card" style="--c:var(--line)" data-am="${esc(m)}"><b>${esc(m)}</b><span class="n">${c(r=>r.am===m)}</span><span class="s">บ้าน ${c(r=>r.am===m&&r.kind==='h')} · ที่ดิน ${c(r=>r.am===m&&r.kind==='l')}${a==='bk'?' · ห้องชุด '+c(r=>r.am===m&&r.kind==='c'):''}</span></button>`).join('')}</div></div>`})()}
+   ${(()=>{const back=live.filter(r=>r.seenBack);if(!back.length)return '';return `<details class="mine-all alert" open><summary style="font-size:15px">🔔 ทรัพย์ที่เคยดูไว้ในประกาศรอบก่อน กลับมาประมูลอีก (${back.length})${back.some(r=>r.spec)?' · มี ⭐ สนใจพิเศษ '+back.filter(r=>r.spec).length:''} <small>(กดเพื่อแสดง/ซ่อน)</small></summary>${tableOf(back.sort((x,y)=>(y.spec?1:0)-(x.spec?1:0)||(x.next||'').localeCompare(y.next||'')))}</details>`})()}
    ${live.length?`<details class="mine-all" ${mine.length&&mine.length<=10?'open':''}><summary style="font-size:15px">⭐ ทรัพย์ของฉันที่${A.short} (${mine.length}) <small>(กดเพื่อแสดง/ซ่อน)</small></summary><p class="sync sub"></p>${mine.length?tableOf(mine):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่</p>'}</details>`:''}
    ${nd?`<details class="mine-all" open><summary style="font-size:15px">📅 ทรัพย์ที่จะประมูลนัดถัดไป ${fd(nd)} · ${up.length} รายการ <small>(กดเพื่อซ่อน/แสดง)</small></summary>${tableOf(up)}</details>`:''}
   </div>`;
@@ -347,7 +363,7 @@ function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำด�
 
 // ---------- filters ----------
 function liveRows(){const R=ROUTES[route];return DATA[R.area].filter(r=>!r.red&&!r.ns3&&(!R.type||r.kind===R.type))}
-const pass=r=>(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||kindOf(r)===F.mine);
+const pass=r=>(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?!!r.seenG:kindOf(r)===F.mine));
 function chips(id,opts,prop){const el=$(id);el.innerHTML=opts.map(([v,l])=>`<button type="button" class="chip" aria-pressed="${F[prop]===v}" data-v="${v}">${l}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;F[prop]=b.dataset.v;chips(id,opts,prop);renderRoute(true)}}
 function buildRail(){
   const R=ROUTES[route], A=AREAS[R.area], live=liveRows();
@@ -377,7 +393,7 @@ function buildRail(){
    chips('fLot',[['','ทุกล็อต'],...lots.map(l=>[l,l.replace('ล็อต ','')+' ('+live.filter(r=>r.lotTxt===l).length+')'])],'lot');}
   chips('fDebt',[['','ทั้งหมด'],['free','ปลอดภาระ'],['debt','ติดจำนอง']],'debt');
   chips('fStat',[['','ทั้งหมด'],['new','🆕 ทรัพย์ใหม่ ('+live.filter(r=>r.isNew).length+')'],['slip','หลุดมา ≥2 นัด ('+live.filter(r=>r.nob>=2).length+')'],['relist','🔁 กลับมาอีกครั้ง ('+live.filter(r=>r.relist).length+')'],['old','คดีเก่า ≥5 ปี ('+live.filter(r=>r.caseAge>=5).length+')']],'stat');
-  chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู']],'mine');
+  chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู'],...(SEEN[R.area]&&SEEN[R.area].length?[['spec','⭐ สนใจพิเศษ'],['seen','👀 เคยดูมาก่อน']]:[])],'mine');
   const fillTb=()=>{const L=live.filter(r=>!F.am||r.am===F.am);const tbs=[...new Set(L.map(r=>r.tbx))].sort();$('fTb').innerHTML=`<option value="">ทั้งหมด</option>`+tbs.map(t=>`<option value="${esc(t)}">${esc(F.am?t.split(' · ').pop():t)} (${L.filter(r=>r.tbx===t).length})</option>`).join('')};
   fillTb();
   if($('fAm')){$('fAm').value=F.am;fillTb();}
@@ -407,15 +423,20 @@ function drawBase(area){
     L.tooltip({permanent:true,direction:'center',className:'roadlbl',interactive:false}).setLatLng(c).setContent(esc(n)).addTo(baseLayer)})}
   map.setView(AREAS[area].center,AREAS[area].zoom);
 }
+const MONEY=L.divIcon({className:'emo',html:'💵',iconSize:[26,26],iconAnchor:[13,13]}), WAIT=L.divIcon({className:'emo',html:'⏳',iconSize:[22,22],iconAnchor:[11,11]}), STAR=L.divIcon({className:'emo star',html:'⭐',iconSize:[14,14],iconAnchor:[-2,16]});
 const colorOf=r=>r.debtOn?'--debt':r.condo?'--condo':r.house?'--house':'--land';
 function drawPins(fit){
   pinLayer.clearLayers(); const list=liveRows().filter(pass); const pts=[];
   // ทรัพย์ที่เฝ้าดู/สนใจแต่ปิดแล้ว (ขาย/งด/ถอน) แสดงเป็นหมุดสีเทา จะได้ไม่หายไปเฉยๆ
-  const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&kindOf(r)&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)).forEach(r=>{
-    r.mk=L.circleMarker([r.lat,r.lon],{radius:7,color:css('--surface'),weight:2,fillColor:css('--mut'),fillOpacity:.7}).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
+  const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&(kindOf(r)||r.spec)&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)&&(F.mine!=='spec'||r.spec)&&(F.mine!=='seen'||r.seenG)&&(!F.mine||F.mine==='spec'||F.mine==='seen'||kindOf(r)===F.mine)).forEach(r=>{
+    r.mk=(r.won?L.marker([r.lat,r.lon],{icon:MONEY,zIndexOffset:500}):L.circleMarker([r.lat,r.lon],{radius:7,color:r.spec?css('--brand'):css('--surface'),weight:r.spec?3:2,fillColor:css('--mut'),fillOpacity:.7})).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
+  // สนใจพิเศษที่ยังไม่กลับมาประมูล (อยู่ในคลังเท่านั้น)
+  if(F.mine==='spec'||F.mine==='seen') (SEEN[R0.area]||[]).filter(g=>!g.cur&&g.lat&&(F.mine==='seen'||g.sp)).forEach(g=>{
+    L.marker([g.lat,g.lon],{icon:g.won?MONEY:WAIT}).bindPopup(()=>popSeen(g),{maxWidth:300}).addTo(pinLayer);pts.push([g.lat,g.lon])});
   list.filter(r=>r.lat).forEach(r=>{const m=kindOf(r);
     r.mk=L.circleMarker([r.lat,r.lon],{radius:m?10:8,color:m==='bid'?css('--debt'):m==='watch'?css('--nobid'):css('--surface'),weight:m?4:2,
       fillColor:css(colorOf(r)),fillOpacity:r.approx?.55:.92,dashArray:r.approx&&!m?'3 3':null}).bindPopup(()=>pop(r),{maxWidth:300,autoPanPadding:[20,20]}).addTo(pinLayer);
+    if(r.spec)L.marker([r.lat,r.lon],{icon:STAR,interactive:false,zIndexOffset:400}).addTo(pinLayer);
     if(r.isNew)L.circleMarker([r.lat,r.lon],{radius:2.5,stroke:false,fillColor:css('--surface'),fillOpacity:1,interactive:false}).addTo(pinLayer);
     pts.push([r.lat,r.lon])});
   $('cnt').innerHTML=`ตรงเงื่อนไข <b>${list.length}</b> รายการ · มีหมุด <b>${pts.length}</b>`;
@@ -426,10 +447,20 @@ function imgLinks(r){if(!r.pic)return '';const b=r.pic.replace(/p\.jpg$/,''),roo
   return `<a class="btn" target="_blank" rel="noopener" href="${root}${esc(r.pic)}">📷 รูปทรัพย์</a><a class="btn" target="_blank" rel="noopener" href="${mroot}${esc(b)}m.jpg">แผนที่สังเขป</a><a class="btn" target="_blank" rel="noopener" href="${mroot}${esc(b)}j.jpg">แผนที่โจทก์</a>`}
 function histPrev(r){const cur=new Set(r.d);const prev=r.H.filter(x=>!cur.has(x[0]));if(!prev.length)return '';
   return `<details class="prev"><summary>📜 ประวัติก่อนล็อตนี้ (${r.prevN} นัด)</summary>${prev.map(x=>`<div>${fd(x[0])} · ลำดับ ${esc(x[1])} · ${esc(x[2])}${x[3]?' '+fm(x[3])+' บ.':''}</div>`).join('')}</details>`}
+function seenBox(g,r){const L=g.list;return `<div class="seenbox">${g.sp?'<b>⭐ สนใจพิเศษ</b> · ':''}👀 เคยดูไว้ตั้งแต่ ${fd(g.firstSeen)}${g.n>1?` · ประกาศมาแล้ว ${g.n} รอบ`:''}${r&&r.seenBack?' · <b>กลับมาประมูลอีกครั้ง</b>':''}${g.note?`<br><small>📝 ${esc(g.note)}</small>`:''}
+  ${L.length>1?`<details><summary>ประวัติที่เคยดู (${L.length} ไฟล์)</summary>${L.map(x=>`<div><small>${fd(x.first)} · ลำดับ ${esc(x.seq)} · ประเมิน ${fm(x.pr)}${x.tag?' · '+esc(x.tag):''}</small></div>`).join('')}</details>`:''}</div>`}
+function popSeen(g){const x=g.list[g.list.length-1];return `<div class="pop">${g.won?`<div class="wonbar">✅ จบแล้ว · ขายได้ <b>${fm(g.won.price)} บ.</b> (${fd(g.won.date)})${g.won.pr?` · ${Math.round(g.won.price/g.won.pr*100)}% ของราคาประเมิน`:''}</div>`:''}
+  <h3>${g.sp?'⭐ ':''}${esc(g.ty||'ทรัพย์')} · ยังไม่กลับมาประมูล</h3>
+  ${PUBLIC&&g.img?`<img class="ph" src="img/${esc(g.img)}" alt="" loading="lazy">`:''}${seenBox(g)}
+  <div class="kv"><span>ราคาประเมินล่าสุด</span><span>${fm(x.pr)} บ.</span><span>ภาระ</span><span>${esc(x.st||'-')}${x.db?' หนี้ '+fm(x.db)+' บ.':''}</span>
+  <span>ที่ตั้ง</span><span>${g.ad&&g.ad!=='-'?'เลขที่ '+esc(g.ad)+' ':''}ต.${esc(g.tb)} อ.${esc(g.am)}${g.approx?' <small>(ตำแหน่งประมาณ)</small>':''}</span><span>โฉนด</span><span>${esc(g.dn)}</span><span>คดี</span><span>${esc(g.cs)}</span>
+  <span>ผลล่าสุด</span><span>${g.rep&&g.rep.length?esc(fd(g.rep[g.rep.length-1][0])+' '+g.rep[g.rep.length-1][2]):'-'}</span></div></div>`}
 function pop(r){
   const loc=r.am?`เขต${esc(r.am)} แขวง${esc(r.tb)}`:`ต.${esc(r.tb)}`;
   const gm=r.approx?`https://www.google.com/maps/search/${encodeURIComponent((r.ad&&r.ad!=='-'?r.ad+' ':'')+'แขวง'+r.tb+' เขต'+r.am+' กรุงเทพมหานคร')}`:`https://www.google.com/maps?q=${r.lat},${r.lon}`;
-  return `<div class="pop"><h3>ลำดับ ${esc(r.seq)} · ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดินเปล่า'}</h3>
+  return `<div class="pop">${r.won?`<div class="wonbar">✅ จบแล้ว · ขายได้ <b>${fm(r.soldPrice)} บ.</b> (${fd(r.soldDate)})${r.pr?` · ${Math.round(r.soldPrice/r.pr*100)}% ของราคาประเมิน`:''}</div>`:''}
+  <h3>${r.spec?'⭐ ':''}ลำดับ ${esc(r.seq)} · ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดินเปล่า'}</h3>
+  ${r.seenG?seenBox(r.seenG,r):''}
   <div class="round"><span class="tag t-lot">${esc(r.lotTxt)}</span>${r.red?`<span class="tag t-wd">ปิดแล้ว: ${esc(st(r.s.find(c=>c&&c!==3)||r.lastCode)[0])}</span>`:''}${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}</div>
   ${PUBLIC&&r.pic?`<a href="img/${esc(r.pic)}" target="_blank" rel="noopener"><img class="ph" src="img/${esc(r.pic)}" alt="ภาพทรัพย์ลำดับ ${esc(r.seq)}" loading="lazy" onerror="this.src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}';this.onerror=()=>this.remove()"></a>`:''}
   ${r.approx?'<div class="approx">📍 ตำแหน่งประมาณกลางแขวง ยังไม่ใช่แปลงจริง</div>':''}
@@ -469,7 +500,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('button[data-t]')
 const kindTh=r=>`<span class="dot" style="background:var(${colorOf(r)})"></span> ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดิน'}${r.debtOn?' <span class="tag t-wd">ติดจำนอง</span>':''}`;
 function tableOf(rows,withArea){
   return `<div class="tbl"><table><thead><tr><th></th><th>นัดถัดไป</th><th>ลำดับ / ล็อต</th><th>ประเภท</th>${withArea?'<th>พื้นที่</th>':''}<th>${withArea?'ตำบล/แขวง':'ตำบล/แขวง'}</th><th>เนื้อที่</th><th class="n">ราคาประเมิน</th><th class="n">ราคาเริ่มต้น</th><th>หมุด</th></tr></thead><tbody>
-  ${rows.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${m==='bid'?'🎯':m==='watch'?'👁':''}</td>
+  ${rows.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${r.spec?'⭐':''}${m==='bid'?'🎯':m==='watch'?'👁':''}${r.seenG?'<br><small title="เคยดูไว้">👀</small>':''}</td>
    <td>${r.red?(r.soldPrice?`<span class="tag t-sold">ขายได้ ${fd(r.soldDate)}</span><br><b>${fm(r.soldPrice)} บ.</b> <small>${r.pr?Math.round(r.soldPrice/r.pr*100)+'% ของราคาประเมิน':''}</small>`:`<span class="tag t-sold">ปิดแล้ว: ${st(r.s.find(c=>c&&c!==3)||r.lastCode)[0]}</span>`):fd(r.next)+`<br><small>${r.roundTxt}</small>${r.isNew?' <span class="tag t-new">ใหม่</span>':''}${r.nob?`<br><span class="tag t-nobid">หลุด ${r.nob} นัด</span>`:''}${r.relist?` <span class="tag t-relist">🔁 ${r.prevN}</span>`:''}`}</td>
    <td>${PUBLIC&&r.pic?`<img class="th" src="img/${esc(r.pic)}" alt="" loading="lazy" onerror="this.remove()">`:''}${esc(r.seq)}<br><span class="tag t-lot">${esc(r.lotTxt)}</span></td><td>${kindTh(r)}</td>${withArea?`<td>${r.area==='cy'?'ชัยภูมิ':'กทม.'}</td>`:''}
    <td>${esc(r.tbx)}${noteOf(r)?`<br><small>📝 ${esc(noteOf(r))}</small>`:''}</td><td>${esc(r.condo?r.ar:r.a)}</td><td class="n">${fm(r.pr)}</td><td class="n"><b>${fm(r.sp)}</b><br><small>${r.spSrc}</small></td>
@@ -538,6 +569,21 @@ function renderMine(){
   const part=(k,t)=>{const rs=all.filter(r=>kindOf(r)===k).sort((a,b)=>(a.next||'9').localeCompare(b.next||'9'));return `<h2>${t} (${rs.length})</h2>${rs.length?tableOf(rs):'<p class="empty">ยังไม่มี</p>'}`};
   const closed=all.filter(r=>r.red), soldN=closed.filter(r=>r.soldPrice).length;
   $('mine').innerHTML=`<p class="sync sub"></p>${closed.length?`<p class="note">ในรายการของคุณ ปิดไปแล้ว ${closed.length} รายการ (ขายได้ ${soldN}) · แถวที่ขายได้แสดงวันที่และราคาขายได้จริงจากรายงานผลการขายของกรมบังคับคดี</p>`:''}${part('bid','🎯 สนใจประมูล')}${part('watch','👁 เฝ้าดู')}`; bindRows($('mine')); setSync();
+}
+function renderSeen(){
+  const S=SEEN[ROUTES[route].area]||[];
+  const row=g=>{const x=g.list[g.list.length-1],live=(g.cur||[]).filter(r=>!r.red);
+    return `<div class="seenrow" ${live.length&&live[0].lat?`data-k="${esc(live[0].k)}" data-a="${live[0].area}"`:''}>${PUBLIC&&g.img?`<img class="th" src="img/${esc(g.img)}" alt="" loading="lazy">`:''}
+    <div><b>${g.sp?'⭐ ':''}${esc(g.ty||'')} · ต.${esc(g.tb)} อ.${esc(g.am)}</b> <small>โฉนด ${esc(g.dn)} · ${esc(g.cs)}</small><br>
+    ${g.won?`<span class="tag t-sold">💵 ขายได้ ${fm(g.won.price)} บ. (${fd(g.won.date)})</span> `:''}${live.length?`<span class="tag t-new">🔔 กลับมาประมูล นัด ${fd(live[0].next)} (${live[0].roundTxt})</span> `:(g.cur?'<span class="tag t-wd">ปิดแล้ว</span> ':'<span class="tag t-pend">⏳ ยังไม่กลับมา</span> ')}
+    <span class="tag t-round">เคยดูตั้งแต่ ${fd(g.firstSeen)}${g.n>1?' · '+g.n+' รอบ':''}</span> <small>ประเมินล่าสุด ${fm(x.pr)}${x.db?' · หนี้จำนอง '+fm(x.db):''}</small>
+    ${g.note?`<br><small>📝 ${esc(g.note)}</small>`:''}</div></div>`};
+  const sec=(t,arr,open)=>arr.length?`<details class="mine-all" ${open?'open':''}><summary style="font-size:15px">${t} (${arr.length})</summary>${arr.map(row).join('')}</details>`:'';
+  const back=S.filter(g=>(g.cur||[]).some(r=>r.seenBack));
+  $('seen').innerHTML=`<h2>📁 คลังทรัพย์ที่เคยดู</h2><p class="sub">เก็บจากไฟล์ PDF ในโฟลเดอร์ Drive (${S.length} ทรัพย์) · ทรัพย์ไหนกลับมาประมูลจะขึ้น 🔔 และในหมุดจะบอกว่าเคยดูมาก่อน</p>
+   ${sec('⭐ สนใจพิเศษ',S.filter(g=>g.sp),true)}${sec('🔔 กลับมาประมูลแล้ว',back,true)}${sec('🔁 ประกาศมาหลายรอบ',S.filter(g=>g.n>1),false)}
+   ${sec('💵 ขายไปแล้ว (ดูราคาแข่งขัน)',S.filter(g=>g.won),false)}${sec('⏳ ยังไม่กลับมา',S.filter(g=>!g.cur&&!g.won),false)}${sec('ทั้งหมด',S,false)}`;
+  $('seen').querySelectorAll('.seenrow[data-k]').forEach(el=>el.onclick=()=>{const r=DATA[el.dataset.a].find(x=>x.k===el.dataset.k);if(!r)return;view='map';renderRoute(false);map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),250)});
 }
 function renderUpd(){
   const R=ROUTES[route], rows=DATA[R.area].filter(r=>!R.type||r.kind===R.type);

@@ -103,6 +103,7 @@ select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--line
 .leaflet-control-layers-toggle::after{content:'🛰️ ดาวเทียม / แผนที่'}
 .leaflet-control-layers{background:var(--surface);color:var(--ink)}
 .btn.park.on{background:var(--stop-bg);border-color:var(--stop);color:var(--stop)}
+.emo .badge-star{position:absolute;right:-4px;top:-8px;font-size:13px}.emo{position:relative}.emo.starpin{font-size:24px}
 .emo{font-size:22px;line-height:1;text-align:center;filter:drop-shadow(0 1px 1px #0006)}.emo.star{font-size:12px}
 .wonbar{background:var(--land);color:#fff;border-radius:6px;padding:6px 8px;margin:-2px 0 6px;font-size:13px}
 .seenbox{background:var(--stop-bg);color:var(--ink);border-radius:6px;padding:6px 8px;margin:4px 0 6px;font-size:12px}.seenbox details{margin-top:4px}
@@ -263,7 +264,13 @@ async function initDb(){
     const id=await user.id(); if(!id) return;
     dbRef=db.doc('data/users/'+id+'/watch');
     dbRef.onSnapshot(s=>{
-      if(s.exists){const d=s.data(); MY=Object.assign({},d.items||{}); NOTES=Object.assign({},d.notes||{}); saveMode='db'; refreshAll();}
+      if(s.exists){if(s.metadata&&s.metadata.hasPendingWrites)return; const d=s.data();
+        const dec=v=>Array.isArray(v)?Object.fromEntries(v):Object.assign({},v||{});
+        const m=dec(d.pairs?d.items:d.items),n=dec(d.notes);
+        // แผนเดิมเก็บเป็น map (บันทึกไม่ผ่านเพราะ key มี / และ .) → รวมค่าที่ค้างในเครื่องเข้าไปด้วย
+        if(!d.pairs){Object.assign(m,MY);Object.assign(n,NOTES)}
+        const same=JSON.stringify(m)===JSON.stringify(MY)&&JSON.stringify(n)===JSON.stringify(NOTES);
+        MY=m; NOTES=n; const first=saveMode!=='db'; saveMode='db'; if(!d.pairs) writeMy(); if(!same||first) refreshAll(); else setSync();}
       else if(saveMode!=='db'){saveMode='db';const local=Object.keys(MY).length+Object.keys(NOTES).length; if(local) writeMy(); refreshAll();}
     },()=>{saveMode='local';dbRef=null;setSync()});
   }catch(e){}
@@ -271,7 +278,7 @@ async function initDb(){
 let writing=Promise.resolve();
 function writeMy(){
   try{localStorage.setItem('led_my',JSON.stringify(MY));localStorage.setItem('led_notes',JSON.stringify(NOTES))}catch(e){}
-  if(dbRef&&saveMode==='db'){const items=Object.assign({},MY),notes=Object.assign({},NOTES);writing=writing.then(()=>dbRef.set({items,notes})).catch(e=>{if(e&&e.code==='invalid_argument'){saveMode='local';dbRef=null;setSync()}})}
+  if(dbRef&&saveMode==='db'){const items=Object.entries(MY),notes=Object.entries(NOTES);writing=writing.then(()=>dbRef.set({pairs:1,items,notes})).then(()=>{noteFlag('บันทึกแล้ว')}).catch(e=>{noteFlag('⚠️ บันทึกไม่สำเร็จ ('+(e&&e.code||'error')+') เก็บในเครื่องนี้ไว้ก่อน');if(e&&e.code==='invalid_argument'){saveMode='local';dbRef=null;setSync()}})}
 }
 // ---- รายการรอกลับมา: จากโฟลเดอร์ Drive (seen.parked) + ที่ผู้ใช้กดเพิ่มเอง (MY['p|'+hk])
 const PK=hk=>'p|'+hk;
@@ -293,8 +300,9 @@ function parkList(a){const rows=DATA[a]||[],by={};rows.forEach(r=>{(by[r.hk]=by[
 const allRows=()=>Object.values(DATA).flatMap(d=>d||[]);
 function toggle(k,kind){const r=allRows().find(x=>x.k===k);if(!r)return;const cur=kindOf(r);
   if(cur===kind){if(r.pw)MY[k]='none';else delete MY[k]}else MY[k]=kind;writeMy();refreshAll();}
-function saveNote(k,txt){const r=allRows().find(x=>x.k===k);if(!r)return;txt=txt.trim();
-  if(txt===(r.pn||''))delete NOTES[k];else NOTES[k]=txt;writeMy();}
+let lastNoteK='';function noteFlag(s){const f=lastNoteK&&document.getElementById('ns-'+lastNoteK);if(f)f.textContent=s}
+function saveNote(k,txt){const r=allRows().find(x=>x.k===k);if(!r)return;txt=txt.trim();lastNoteK=k;
+  if(txt===(r.pn||''))delete NOTES[k];else NOTES[k]=txt;writeMy();if(saveMode!=='db')noteFlag('บันทึกในเครื่องนี้แล้ว');else noteFlag('กำลังบันทึก…');}
 
 // ---------- routing ----------
 let route='home', view='map', F={date:'',type:'',debt:'',tb:'',max:0,mine:'',stat:'',lot:'',am:''};
@@ -341,8 +349,6 @@ async function renderHome(){
   $('sHome').innerHTML=`<div class="home-wrap">
    <div class="area"><h2>เลือกสำนักงานบังคับคดี</h2><p class="meta">แต่ละสำนักงานแยกหน้าของตัวเอง กดเพื่อเข้าไปดูแผนที่ รายการ และบทวิเคราะห์</p>
     <div class="cards">${Object.keys(AREAS).map(off).join('')}</div></div>
-   <div class="mine-all"><h2 style="font-size:15px;margin:0 0 4px">⭐ ทรัพย์ของฉัน (${mine.length})</h2><p class="sync sub"></p>
-    ${mine.length?tableOf(mine,true):'<p class="empty">กด 🎯 สนใจประมูล หรือ 👁 เฝ้าดู ในหมุดบนแผนที่ แล้วรายการจะมาอยู่ที่นี่</p>'}</div>
    <p class="foot">ข้อมูลจากเว็บกรมบังคับคดี ณ 8 ต.ค. 2569 · ราคาเริ่มต้นเป็นค่าประมาณ (ราคาประเมิน × 100/90/80/70% ตามจำนวนนัดที่ไม่มีผู้สู้ราคา) ยกเว้นที่ระบุว่ามาจากบัญชี FB · แผนที่ถนน © OpenStreetMap contributors · ตรวจสอบประกาศจริงก่อนเข้าประมูลทุกครั้ง</p>
   </div>`;
   $('sHome').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
@@ -401,7 +407,7 @@ function buildRail(){
    <div class="f legend"><b>สีหมุด</b>
      ${!R.type||R.type==='h'?lg('--house','บ้าน'):''}${!R.type||R.type==='l'?lg('--land','ที่ดินว่างเปล่า'):''}${R.type==='c'?lg('--condo','ห้องชุด (ตำแหน่งอาคาร)'):''}
      ${lg('--debt','ติดภาระ (จำนองติดไป)')}${lg('--mut','หมุดเส้นประ = ตำแหน่งประมาณกลางตำบล/แขวง',true)}
-     ${lg('--mut','ที่เฝ้าดูไว้แต่ปิดแล้ว (ขาย/งด/ถอน)')}
+     ${lg('--mut','ที่เฝ้าดูไว้แต่ปิดแล้ว (งด/ถอน)')}<div>💵 เฝ้าดูไว้แล้วขายไป · 💵⭐ สนใจพิเศษที่ขายแล้ว · ⭐ สนใจพิเศษ (เน้นสู้ราคา)</div>
      <div style="color:var(--mut)">ขอบแดง = สนใจประมูล · ขอบส้ม = เฝ้าดู · มีจุดกลาง = ทรัพย์ใหม่</div></div>
    <div class="count" id="cnt"></div>
    <div class="note">${A.note}</div>`;
@@ -441,20 +447,20 @@ function drawBase(area){
     L.tooltip({permanent:true,direction:'center',className:'roadlbl',interactive:false}).setLatLng(c).setContent(esc(n)).addTo(baseLayer)})}
   map.setView(AREAS[area].center,AREAS[area].zoom);
 }
-const MONEY=L.divIcon({className:'emo',html:'💵',iconSize:[26,26],iconAnchor:[13,13]}), WAIT=L.divIcon({className:'emo',html:'⏳',iconSize:[22,22],iconAnchor:[11,11]}), STAR=L.divIcon({className:'emo star',html:'⭐',iconSize:[14,14],iconAnchor:[-2,16]});
+const MONEY=L.divIcon({className:'emo',html:'💵',iconSize:[26,26],iconAnchor:[13,13]}), MONEYSTAR=L.divIcon({className:'emo',html:'💵<span class="badge-star">⭐</span>',iconSize:[30,30],iconAnchor:[15,15]}), STARPIN=L.divIcon({className:'emo starpin',html:'⭐',iconSize:[28,28],iconAnchor:[14,14]}), WAIT=L.divIcon({className:'emo',html:'⏳',iconSize:[22,22],iconAnchor:[11,11]}), STAR=L.divIcon({className:'emo star',html:'⭐',iconSize:[14,14],iconAnchor:[-2,16]});
 const colorOf=r=>r.debtOn?'--debt':r.condo?'--condo':r.house?'--house':'--land';
 function drawPins(fit){
   pinLayer.clearLayers(); const list=liveRows().filter(pass); const pts=[];
   // ทรัพย์ที่เฝ้าดู/สนใจแต่ปิดแล้ว (ขาย/งด/ถอน) แสดงเป็นหมุดสีเทา จะได้ไม่หายไปเฉยๆ
   const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&(kindOf(r)||r.spec||(F.mine==='seen'&&parkOf(r)))&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)&&(F.mine!=='spec'||r.spec)&&(F.mine!=='seen'||!!parkOf(r))&&(!F.mine||F.mine==='spec'||F.mine==='seen'||kindOf(r)===F.mine)).forEach(r=>{
-    r.mk=(r.won?L.marker([r.lat,r.lon],{icon:MONEY,zIndexOffset:500}):L.circleMarker([r.lat,r.lon],{radius:7,color:r.spec?css('--brand'):css('--surface'),weight:r.spec?3:2,fillColor:css('--mut'),fillOpacity:.7})).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
+    r.mk=(r.won?L.marker([r.lat,r.lon],{icon:r.spec?MONEYSTAR:MONEY,zIndexOffset:r.spec?900:500}):r.spec?L.marker([r.lat,r.lon],{icon:STARPIN,zIndexOffset:800}):L.circleMarker([r.lat,r.lon],{radius:7,color:r.spec?css('--brand'):css('--surface'),weight:r.spec?3:2,fillColor:css('--mut'),fillOpacity:.7})).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
   // สนใจพิเศษที่ยังไม่กลับมาประมูล (อยู่ในคลังเท่านั้น)
   if(F.mine==='spec'||F.mine==='seen') (SEEN[R0.area]||[]).filter(g=>!(g.cur||[]).length&&g.lat&&(F.mine==='seen'?(g.parked&&MY[PK(g.k)]!=='none'):g.sp)).forEach(g=>{
-    L.marker([g.lat,g.lon],{icon:g.won?MONEY:WAIT}).bindPopup(()=>popSeen(g),{maxWidth:300}).addTo(pinLayer);pts.push([g.lat,g.lon])});
+    L.marker([g.lat,g.lon],{icon:g.won?(g.sp?MONEYSTAR:MONEY):(g.sp?STARPIN:WAIT)}).bindPopup(()=>popSeen(g),{maxWidth:300}).addTo(pinLayer);pts.push([g.lat,g.lon])});
   list.filter(r=>r.lat).forEach(r=>{const m=kindOf(r);
     r.mk=L.circleMarker([r.lat,r.lon],{radius:m?10:8,color:m==='bid'?css('--debt'):m==='watch'?css('--nobid'):css('--surface'),weight:m?4:2,
       fillColor:css(colorOf(r)),fillOpacity:r.approx?.55:.92,dashArray:r.approx&&!m?'3 3':null}).bindPopup(()=>pop(r),{maxWidth:300,autoPanPadding:[20,20]}).addTo(pinLayer);
-    if(r.spec)L.marker([r.lat,r.lon],{icon:STAR,interactive:false,zIndexOffset:400}).addTo(pinLayer);
+    if(r.spec){r.mk.remove();r.mk=L.marker([r.lat,r.lon],{icon:STARPIN,zIndexOffset:800}).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer);}
     if(r.isNew)L.circleMarker([r.lat,r.lon],{radius:2.5,stroke:false,fillColor:css('--surface'),fillOpacity:1,interactive:false}).addTo(pinLayer);
     pts.push([r.lat,r.lon])});
   $('cnt').innerHTML=`ตรงเงื่อนไข <b>${list.length}</b> รายการ · มีหมุด <b>${pts.length}</b>`;
@@ -512,7 +518,8 @@ function pop(r){
 let noteTimer=null;
 document.addEventListener('input',e=>{const ta=e.target.closest('textarea[data-note]');if(!ta)return;clearTimeout(noteTimer);
   const k=ta.dataset.note,v=ta.value,flag=document.getElementById('ns-'+k);if(flag)flag.textContent='กำลังพิมพ์…';
-  noteTimer=setTimeout(()=>{saveNote(k,v);const f=document.getElementById('ns-'+k);if(f)f.textContent=saveMode==='db'?'บันทึกแล้ว':'บันทึกในเครื่องนี้แล้ว'},800)});
+  noteTimer=setTimeout(()=>saveNote(k,v),800)});
+document.addEventListener('focusout',e=>{const ta=e.target.closest&&e.target.closest('textarea[data-note]');if(!ta)return;clearTimeout(noteTimer);saveNote(ta.dataset.note,ta.value)});
 document.addEventListener('click',e=>{const b=e.target.closest('button[data-t]');if(!b)return;e.stopPropagation();toggle(b.dataset.t,b.dataset.kind);
   const r=[...(DATA.cy||[]),...(DATA.bk||[])].find(x=>x.k===b.dataset.t);if(r&&r.mk&&r.mk.isPopupOpen&&r.mk.isPopupOpen())r.mk.setPopupContent(pop(r));});
 

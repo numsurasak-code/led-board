@@ -222,22 +222,52 @@ function derive(r){
   const p=(r.a||'0-0-0').split('-'); r.ar=r.condo?(p[2]+' ตร.ม.'):(r.a+' ไร่-งาน-วา');
   const i=r.d.findIndex(d=>d>=TODAY); r.ni=i; r.next=i>=0?r.d[i]:null;
   r.nob=r.s.slice(0,i<0?r.s.length:i).filter(c=>c===3).length;
-  r.fac=[1,.9,.8,.7][Math.min(r.nob,3)];
-  const fbSp=r.fb&&r.fb.sp; // fb อาจมีแค่สถานะ/หมายเหตุจากบัญชีขาย ไม่มีราคา
-  if(r.debtOn&&!fbSp){ // จำนองติดไป: ประมูลเฉพาะส่วนเกินหนี้ ถ้าหนี้ ≥ ราคาประเมิน เริ่มที่ 50,000
-    const rem=r.pr-(r.db||0); r.sp=rem>0?ceilP(rem*r.fac):50000; r.spSrc=rem>0?'ประมาณ · ส่วนเกินหนี้':'หนี้เกินราคาประเมิน'; r.cost=r.sp+(r.db||0);
-  } else { r.sp=fbSp?r.fb.sp:ceilP(r.pr*r.fac); r.spSrc=fbSp?'บัญชี FB':'ประมาณ'; }
+  price(r,0);
   let li=-1; r.d.forEach((d,j)=>{if(d<TODAY&&r.s[j]!==0)li=j}); r.li=li; r.lastCode=li>=0?r.s[li]:null;
   {const m=(r.lot||'').match(/([ก-๙]{1,3}\.[ก-๙]{1,3}\.)\s*\/\s*\d{2}(\d{2})/);r.lotTxt=m?`ล็อต ${m[1]} ${m[2]}`:'ล็อต '+(r.lot||'').replace(/\s*-\s*1$/,'');}
   r.isNew=r.ni===0; r.roundTxt=r.next?`นัดที่ ${r.ni+1}/${r.d.length}`:'ครบทุกนัดแล้ว';
   r.slip=r.nob?`ไม่มีผู้สู้ราคามาแล้ว ${r.nob} นัด`:(r.isNew?'ทรัพย์ใหม่ ยังไม่เคยประมูล':'');
   return r;
 }
+// ---------- ชื่อจำเลย/ผู้ถือกรรมสิทธิ์ (เข้ารหัส ต้องใส่รหัสผ่าน) ----------
+const NAMES={}; let NAMEPASS=''; try{NAMEPASS=localStorage.getItem('led_np')||''}catch(e){}
+const nameOf=r=>r.p2||r.ow?[r.p2||'',r.ow||'']:(NAMES[r.area]||{})[r.lot+'|'+r.seq+'|'+r.dn]||null;
+async function loadNames(area,pass){
+  const j=await (await fetch('names_'+area+'.json',{cache:'no-store'})).json();
+  const b=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+  const km=await crypto.subtle.importKey('raw',new TextEncoder().encode(pass),'PBKDF2',false,['deriveKey']);
+  const key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b(j.s),iterations:j.n,hash:'SHA-256'},km,{name:'AES-GCM',length:256},false,['decrypt']);
+  NAMES[area]=JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:b(j.i)},key,b(j.c))));
+}
+async function unlockNames(ask){
+  const area=ROUTES[route]&&ROUTES[route].area; if(!PUBLIC||!area||NAMES[area])return true;
+  let p=NAMEPASS; if(!p&&ask)p=prompt('รหัสผ่านสำหรับดูชื่อจำเลย/เจ้าของทรัพย์')||''; if(!p)return false;
+  try{await loadNames(area,p);NAMEPASS=p;try{localStorage.setItem('led_np',p)}catch(e){}return true}
+  catch(e){NAMEPASS='';try{localStorage.removeItem('led_np')}catch(e2){} if(ask)alert('รหัสผ่านไม่ถูกต้อง');return false}
+}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-unlock]');if(!b)return;e.stopPropagation();
+  if(await unlockNames(true)){const p=b.closest('.leaflet-popup');map.closePopup();renderRoute(false)}});
+// ราคาเริ่มต้น: นัดที่ไม่มีผู้สู้ราคาแต่ละครั้งลด 10% (100→90→80→70) นัดที่งดไม่นับ
+// ทรัพย์ที่ประกาศซ้ำ (relist) ลดต่อจากล็อตก่อน (prevNob) · บัญชีขาย FB: sp = ราคานัดนี้, sp1 = ราคานัดแรกของล็อตนี้
+function price(r,prevNob){
+  const n=Math.min(r.nob+prevNob,3); r.fac=[1,.9,.8,.7][n];
+  const fb=r.fb||{};
+  if(fb.sp){r.sp=fb.sp;r.spSrc='บัญชี FB';if(r.debtOn)r.cost=r.sp+(r.db||0);return}
+  if(fb.sp1&&r.pr>0){ // เริ่มจากราคานัดแรกจริงของล็อต แล้วลดตามนัดที่ไม่มีผู้สู้ในล็อตนี้
+    const f1=r.debtOn?1:[1,.9,.8,.7].reduce((a,b)=>Math.abs(fb.sp1/r.pr-b)<Math.abs(fb.sp1/r.pr-a)?b:a);
+    const fNow=Math.max(.7,f1-.1*r.nob); r.sp=r.nob?ceilP(fb.sp1*fNow/f1):fb.sp1;
+    if(r.debtOn&&fb.sp1<=50000)r.sp=fb.sp1;
+    r.spSrc=r.nob?`ประมาณจากบัญชี FB (${Math.round(fNow*100)}%)`:'บัญชี FB';if(r.debtOn)r.cost=r.sp+(r.db||0);return}
+  if(r.debtOn){ // จำนองติดไป: ประมูลเฉพาะส่วนเกินหนี้ ถ้าหนี้ ≥ ราคาประเมิน เริ่มที่ 50,000
+    const rem=r.pr-(r.db||0); r.sp=rem>0?ceilP(rem*r.fac):50000; r.spSrc=rem>0?'ประมาณ · ส่วนเกินหนี้':'หนี้เกินราคาประเมิน'; r.cost=r.sp+(r.db||0);
+  } else { r.sp=ceilP(r.pr*r.fac); r.spSrc=prevNob?'ประมาณ · ลดต่อจากล็อตก่อน':'ประมาณ'; }
+}
 function addHist(r,H){
   r.hk=(r.cs||'').replace(/[\s.]/g,'')+'|'+String(r.dn||'').trim().split(/[,\-\s]/)[0];
   r.H=(H.h&&H.h[r.hk])||[];
   const cur=new Set(r.d); const prevDates=[...new Set(r.H.filter(x=>!cur.has(x[0])).map(x=>x[0]))];
   r.prevN=prevDates.length; r.relist=r.prevN>0;
+  // ล็อตใหม่เริ่ม 100% เสมอ (ตรวจกับบัญชีขาย 12 ต.ค. 69: โฉนด 113939 เคยไม่มีผู้สู้ 3 นัดในล็อต เม.ย. แต่ล็อต ก.ย. เริ่มใหม่ 100%) จึงไม่นับนัดของล็อตก่อน
   const soldH=r.H.find(x=>x[3]>0); r.soldPrice=soldH?soldH[3]:0; r.soldDate=soldH?soldH[0]:'';
   r.caseYear=+((r.cs||'').split('/')[1]||0); r.caseAge=r.caseYear?2569-r.caseYear:0;
   return r;
@@ -321,7 +351,7 @@ $('tabs').onclick=e=>{const b=e.target.closest('button');if(!b)return;view=b.dat
 async function show(r){
   r=ALIAS[r]||r; route=ROUTES[r]?r:'home'; $('btnHub').hidden=true;
   if(route==='home'){ $('tabs').hidden=true; $('title').textContent='บอร์ดทรัพย์ขายทอดตลาด'; $('sched').textContent=''; screen('sHome'); renderHome(); return; }
-  const R=ROUTES[route]; await load(R.area);
+  const R=ROUTES[route]; await load(R.area); await unlockNames(false);
   if(!R.hub){$('btnHub').hidden=false;$('btnHub').textContent='‹ '+AREAS[R.area].short}
   if(R.hub){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sHome'); renderHub(R.area); return; }
   if(R.page){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sUpd'); await renderAnalysis(R.area); return; }
@@ -405,7 +435,7 @@ function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำด�
 function liveRows(){const R=ROUTES[route];return DATA[R.area].filter(r=>!r.red&&!r.ns3&&(!R.type||r.kind===R.type))}
 // ค้นหา: "26-1" = ลำดับตรงตัว · อย่างอื่นค้นในลำดับ/โฉนด/ตำบล/อำเภอ/คดี/โจทก์
 const qn=s=>String(s||'').replace(/\s/g,'').toLowerCase();
-const qpass=r=>{const q=qn(F.q);if(!q)return true;if(/^\d+-\d+$/.test(q))return qn(r.seq)===q;if(/^\d+$/.test(q))return qn(r.seq).split('-')[0]===q||qn(r.dn).includes(q);return [r.seq,r.dn,r.tb,r.am,r.cs,r.pl].map(qn).join('|').includes(q)};
+const qpass=r=>{const q=qn(F.q);if(!q)return true;if(/^\d+-\d+$/.test(q))return qn(r.seq)===q;if(/^\d+$/.test(q))return qn(r.seq).split('-')[0]===q||qn(r.dn).includes(q);return [r.seq,r.dn,r.tb,r.am,r.cs,r.pl,...(nameOf(r)||[])].map(qn).join('|').includes(q)};
 const pass=r=>qpass(r)&&(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?(!!parkOf(r)&&!isBack(r)):kindOf(r)===F.mine));
 function chips(id,opts,prop){const el=$(id);el.innerHTML=opts.map(([v,l])=>`<button type="button" class="chip" aria-pressed="${F[prop]===v}" data-v="${v}">${l}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;F[prop]=b.dataset.v;chips(id,opts,prop);renderRoute(true)}}
 function buildRail(){
@@ -527,7 +557,8 @@ function pop(r){
    <span>ภาระ</span><span>${esc(r.st)}</span>
    ${r.fb?`<span>บัญชีขาย</span><span><b>${esc(r.fb.note)}</b>${r.fb.sp1?`<br><small>ราคาเริ่มต้นนัดแรก ${fm(r.fb.sp1)} บ.</small>`:''}<br><small>${esc(r.fb.src||'')}</small></span>`:''}
    <span>คดี</span><span>${esc(r.cs)} · ${esc(r.lot)}</span>
-   ${r.pl?`<span>โจทก์</span><span>${esc(r.pl)}</span>`:''}${r.p2?`<span>จำเลย</span><span>${esc(r.p2)}</span>`:''}${r.ow?`<span>ผู้ถือกรรมสิทธิ์</span><span>${esc(r.ow)}</span>`:''}
+   ${r.pl?`<span>โจทก์</span><span>${esc(r.pl)}</span>`:''}${(()=>{const n=nameOf(r);if(n)return `${n[0]?`<span>จำเลย</span><span>${esc(n[0])}</span>`:''}${n[1]?`<span>ผู้ถือกรรมสิทธิ์</span><span>${esc(n[1])}</span>`:''}`;
+     return PUBLIC?`<span>จำเลย/เจ้าของ</span><span><button type="button" class="btn" data-unlock="1">🔒 ดูชื่อ (ใส่รหัส)</button></span>`:''})()}
   </div>${hist(r)}${histPrev(r)}
   <label class="notelbl" for="note-${esc(r.k)}">📝 โน้ตของฉัน</label>
   <textarea class="note-in" id="note-${esc(r.k)}" data-note="${esc(r.k)}" rows="2" placeholder="เช่น ไปดูแล้ว ทางเข้าแคบ / ราคาที่ตั้งใจสู้">${esc(noteOf(r))}</textarea>

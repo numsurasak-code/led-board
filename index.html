@@ -268,6 +268,7 @@ function addHist(r,H){
   const cur=new Set(r.d); const prevDates=[...new Set(r.H.filter(x=>!cur.has(x[0])).map(x=>x[0]))];
   r.prevN=prevDates.length; r.relist=r.prevN>0;
   // ล็อตใหม่เริ่ม 100% เสมอ (ตรวจกับบัญชีขาย 12 ต.ค. 69: โฉนด 113939 เคยไม่มีผู้สู้ 3 นัดในล็อต เม.ย. แต่ล็อต ก.ย. เริ่มใหม่ 100%) จึงไม่นับนัดของล็อตก่อน
+  r.hot=(H.hot||{})[r.hk]||null; // [%ของราคาเริ่มต้น, ราคาขายได้, วันที่, %ของราคาประเมิน] เมื่อขายได้ ≥110% ของราคาเริ่มต้น
   const soldH=r.H.find(x=>x[3]>0); r.soldPrice=soldH?soldH[3]:0; r.soldDate=soldH?soldH[0]:'';
   r.caseYear=+((r.cs||'').split('/')[1]||0); r.caseAge=r.caseYear?2569-r.caseYear:0;
   return r;
@@ -467,7 +468,7 @@ function buildRail(){
    chips('fLot',[['','ทุกล็อต'],...lots.map(l=>[l,l.replace('ล็อต ','')+' ('+live.filter(r=>r.lotTxt===l).length+')'])],'lot');}
   chips('fDebt',[['','ทั้งหมด'],['free','ปลอดภาระ'],['debt','ติดจำนอง']],'debt');
   chips('fStat',[['','ทั้งหมด'],['live','🚫 ซ่อนที่จบแล้ว'],['new','🆕 ทรัพย์ใหม่ ('+live.filter(r=>r.isNew).length+')'],['slip','หลุดมา ≥2 นัด ('+live.filter(r=>r.nob>=2).length+')'],['relist','🔁 กลับมาอีกครั้ง ('+live.filter(r=>r.relist).length+')'],['old','คดีเก่า ≥5 ปี ('+live.filter(r=>r.caseAge>=5).length+')']],'stat');
-  chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู'],...(SEEN[R.area]&&SEEN[R.area].length?[['spec','⭐ สนใจพิเศษ'],['seen','⏳ รอกลับมา']]:[])],'mine');
+  chips('fMine',[['','ทั้งหมด'],['bid','สนใจประมูล'],['watch','เฝ้าดู'],...(DATA[R.area].some(r=>r.hot)?[['hot','🔥 ขายไปแล้ว แข่งขันสูง ('+DATA[R.area].filter(r=>r.hot&&(!R.type||r.kind===R.type)).length+')']]:[]),...(SEEN[R.area]&&SEEN[R.area].length?[['spec','⭐ สนใจพิเศษ'],['seen','⏳ รอกลับมา']]:[])],'mine');
   const fillTb=()=>{const L=live.filter(r=>!F.am||r.am===F.am);const tbs=[...new Set(L.map(r=>r.tbx))].sort();$('fTb').innerHTML=`<option value="">ทั้งหมด</option>`+tbs.map(t=>`<option value="${esc(t)}">${esc(F.am?t.split(' · ').pop():t)} (${L.filter(r=>r.tbx===t).length})</option>`).join('')};
   fillTb();
   if($('fAm')){$('fAm').value=F.am;fillTb();}
@@ -506,6 +507,10 @@ function drawPins(fit){
   const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&(kindOf(r)||r.spec||(F.mine==='seen'&&parkOf(r)))&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)&&(F.mine!=='spec'||r.spec)&&(F.mine!=='seen'||!!parkOf(r))&&(!F.mine||F.mine==='spec'||F.mine==='seen'||kindOf(r)===F.mine)).forEach(r=>{
     r.mk=(r.won?L.marker([r.lat,r.lon],{icon:r.spec?MONEYSTAR:MONEY,zIndexOffset:r.spec?900:500}):r.spec?L.marker([r.lat,r.lon],{icon:STARPIN,zIndexOffset:800}):L.circleMarker([r.lat,r.lon],{radius:7,color:r.spec?css('--brand'):css('--surface'),weight:r.spec?3:2,fillColor:css('--mut'),fillOpacity:.7})).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
   // สนใจพิเศษที่ยังไม่กลับมาประมูล (อยู่ในคลังเท่านั้น)
+  // 🔥 แข่งขันสูง: ทรัพย์ที่ขายไปแล้วเกินราคาเริ่มต้น ≥10% (ดูว่าทำเลแบบไหนคนแย่งกัน)
+  if(F.mine==='hot') DATA[R0.area].filter(r=>r.hot&&r.lat&&(!R0.type||r.kind===R0.type)&&(!F.am||r.am===F.am)).forEach(r=>{
+    const big=r.hot[0]>=130; r.mk=L.marker([r.lat,r.lon],{icon:L.divIcon({className:'',html:`<div style="font-size:${big?22:17}px;line-height:1;filter:drop-shadow(0 1px 1px #0006)">🔥</div>`,iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:big?700:600})
+      .bindPopup(()=>`<div style="margin-bottom:6px"><b>🔥 ขายได้ ${fm(r.hot[1])} บ.</b> (${r.hot[2]})<br>= <b>${r.hot[0]}%</b> ของราคาเริ่มต้น · ${r.hot[3]}% ของราคาประเมิน</div>`+pop(r),{maxWidth:300}).addTo(pinLayer); pts.push([r.lat,r.lon])});
   // ⭐ สนใจพิเศษแสดงบนแผนที่ปกติเสมอ (แม้ยังไม่กลับมาประกาศ) ถ้าไม่ได้กรองวัน/สถานะ/ประเภท
   const kOk=g=>!R0.type||(R0.type==='h'?/สิ่งปลูกสร้าง/.test(g.ty||''):R0.type==='l'?!/สิ่งปลูกสร้าง|ห้องชุด/.test(g.ty||''):/ห้องชุด/.test(g.ty||''));
   const showSp=!F.mine&&!F.date&&!F.stat&&!F.lot&&!F.q;
@@ -650,6 +655,12 @@ async function renderAnalysis(area){
    ${G.map(g=>`<tr><td>${g}</td>${A.plm.map(m=>{const v=m[1][g];if(!v||!v[0])return '<td class="n">-</td>';const p=Math.round(v[1]/v[0]*100);return `<td class="n" style="--h:${Math.min(1,p/60).toFixed(2)}" title="${g} ${v[1]}/${v[0]}"><b>${p}%</b><br><small>(${v[1]}/${v[0]})</small></td>`}).join('')}</tr>`).join('')}</tbody></table></div>`})():''}
    <div class="tbl"><table style="min-width:620px"><thead><tr><th>โจทก์</th><th class="n">บ้านที่ขึ้นประมูล</th><th class="n">ขายได้</th><th class="n">% ขายออก</th><th class="n">ปิดที่ราคาเริ่มต้น</th><th class="n">สู้ราคา &gt;10%</th><th class="n">ขายนัดแรกที่ขึ้น</th><th class="n">ราคาขาย/ประเมิน</th></tr></thead><tbody>
    ${A.pl.map(x=>`<tr><td>${esc(x[0])}</td><td class="n">${x[1]}</td><td class="n">${x[2]}</td><td class="n"><b>${Math.round(x[2]/x[1]*100)}%</b></td><td class="n">${x[3]}/${x[2]}</td><td class="n">${x[4]}</td><td class="n">${x[5]}</td><td class="n">${pc(x[6])}</td></tr>`).join('')}</tbody></table></div>
+   ${A.comp&&A.comp.length?`<h4>การแข่งขันรายเดือน (ทุกประเภท ทุกโจทก์ ที่ขายได้)</h4>
+   <p class="sub">🟦 ขายที่ราคาเริ่มต้น = ไม่มีคนแข่ง ได้ราคาลด · 🟧 แข่งขันสูง = ขายเกินราคาเริ่มต้น ≥10% · ถ้าแถบฟ้ายาวขึ้นต่อเนื่อง = คนแย่งกันน้อยลง ซื้อราคาลดได้ง่ายขึ้น</p>
+   <div class="tbl"><table style="min-width:420px"><thead><tr><th>เดือน</th><th class="n">ขายได้</th><th>ขายที่ราคาเริ่มต้น / แข่งขันสูง</th></tr></thead><tbody>
+   ${A.comp.map(([m,n,a,h])=>{const pa=Math.round(a/n*100),ph=Math.round(h/n*100);return `<tr><td>${TH[+m.slice(4,6)]} ${m.slice(2,4)}</td><td class="n">${n}</td><td><div style="display:flex;gap:6px;align-items:center"><div style="height:12px;width:${pa*1.6}px;background:#3b82f6;border-radius:3px"></div><small>${pa}%</small><div style="height:12px;width:${ph*1.6}px;background:#f97316;border-radius:3px;margin-left:8px"></div><small>${ph}%</small></div></td></tr>`}).join('')}</tbody></table></div>
+   ${A.compBand&&A.compBand.length?`<p class="sub"><b>บ้าน: สัดส่วนที่แข่งขันสูงตามช่วงราคาประเมิน</b> · ${A.compBand.map(([b,h,n])=>`${b} ${Math.round(h/n*100)}% (${h}/${n})`).join(' · ')}</p>`:''}
+   <p class="sub">ดูทำเลที่แข่งกันบนแผนที่: หน้าแผนที่ → แสดงเฉพาะ → 🔥 ขายไปแล้ว แข่งขันสูง</p>`:''}
    <p class="sub"><b>อ่านผล:</b> ธอส. ขายออกสูงและปิดที่ราคาเริ่มต้นเกือบทั้งหมดตั้งแต่นัดแรก → ต้องเตรียมสู้ตั้งแต่นัดแรก · ออมสิน/กรุงไทย ขายออกน้อย ปิดราว 70–80% ของราคาประเมิน → รอให้หลุดหลายนัดได้ · บริษัทบริหารสินทรัพย์ มีคนสู้ราคาแรง · ข้อมูลสะสม ${A.ledgerN?fm(A.ledgerN)+' แถว':''} (เก็บต่อเนื่อง ไม่ลบ) ตัวเลขจะแม่นขึ้นเรื่อยๆ</p>
    <p><a class="btn" href="https://numsurasak-code.github.io/led-board/data/%E0%B8%9C%E0%B8%A5%E0%B8%9B%E0%B8%A3%E0%B8%B0%E0%B8%A1%E0%B8%B9%E0%B8%A5%E0%B8%AA%E0%B8%B0%E0%B8%AA%E0%B8%A1_%E0%B8%8A%E0%B8%B1%E0%B8%A2%E0%B8%A0%E0%B8%B9%E0%B8%A1%E0%B8%B4.xlsx" target="_blank" rel="noopener">📥 ดาวน์โหลดตารางผลประมูลสะสม (Excel)</a> <small>ทุกนัด ทุกทรัพย์ ชัยภูมิ + ภูเขียว · มีแผ่นสรุปตามโจทก์</small></p></section>`:''}
   <section class="ana"><h3>สรุปไว้วางแผนประมูล</h3><ul class="tips">
@@ -668,7 +679,8 @@ const sortSel=(id,v)=>`<label>เรียงตาม <select id="${id}">${Obje
 function renderList(){
   $('list').innerHTML=`<h2>รายการ (<span id="lN"></span>)</h2><p class="sub">ใช้ตัวกรองเดียวกับแท็บแผนที่ · กดแถวที่มีหมุดเพื่อไปดูบนแผนที่</p>
     <div class="upbar"><input type="search" id="lQ" placeholder="🔍 ค้นทุกล็อต: ลำดับ เช่น 110-1 · เลขโฉนด · ตำบล · โจทก์" value="${esc(F.q||'')}">${sortSel('fSort',F.sort)}</div><div id="lT"></div>`;
-  const draw=()=>{const rows=liveRows().filter(pass).sort((SORTS[F.sort]||SORTS[''])[1]);$('lN').textContent=rows.length;$('lT').innerHTML=tableOf(rows);bindRows($('lT'))};
+  const R=ROUTES[route];
+  const draw=()=>{const rows=(F.mine==='hot'?DATA[R.area].filter(r=>r.hot&&(!R.type||r.kind===R.type)&&(!F.am||r.am===F.am)&&qpass(r)):liveRows().filter(pass)).sort(F.mine==='hot'&&!F.sort?(a,b)=>b.hot[0]-a.hot[0]:(SORTS[F.sort]||SORTS[''])[1]);$('lN').textContent=rows.length;$('lT').innerHTML=tableOf(rows);bindRows($('lT'))};
   draw();
   $('fSort').onchange=e=>{F.sort=e.target.value;draw()};
   $('lQ').oninput=e=>{F.q=e.target.value;if($('fQ'))$('fQ').value=F.q;draw()};

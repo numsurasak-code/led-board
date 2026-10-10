@@ -388,7 +388,10 @@ function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำด�
 
 // ---------- filters ----------
 function liveRows(){const R=ROUTES[route];return DATA[R.area].filter(r=>!r.red&&!r.ns3&&(!R.type||r.kind===R.type))}
-const pass=r=>(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?(!!parkOf(r)&&!isBack(r)):kindOf(r)===F.mine));
+// ค้นหา: "26-1" = ลำดับตรงตัว · อย่างอื่นค้นในลำดับ/โฉนด/ตำบล/อำเภอ/คดี/โจทก์
+const qn=s=>String(s||'').replace(/\s/g,'').toLowerCase();
+const qpass=r=>{const q=qn(F.q);if(!q)return true;if(/^\d+-\d+$/.test(q))return qn(r.seq)===q;if(/^\d+$/.test(q))return qn(r.seq).split('-')[0]===q||qn(r.dn).includes(q);return [r.seq,r.dn,r.tb,r.am,r.cs,r.pl].map(qn).join('|').includes(q)};
+const pass=r=>qpass(r)&&(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?(!!parkOf(r)&&!isBack(r)):kindOf(r)===F.mine));
 function chips(id,opts,prop){const el=$(id);el.innerHTML=opts.map(([v,l])=>`<button type="button" class="chip" aria-pressed="${F[prop]===v}" data-v="${v}">${l}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;F[prop]=b.dataset.v;chips(id,opts,prop);renderRoute(true)}}
 function buildRail(){
   const R=ROUTES[route], A=AREAS[R.area], live=liveRows();
@@ -396,6 +399,7 @@ function buildRail(){
   const ams=[...new Set(live.map(r=>r.am).filter(Boolean))].sort((a,b)=>live.filter(r=>r.am===b).length-live.filter(r=>r.am===a).length);
   const lg=(c,t,dash)=>`<div><span class="dot${dash?' dash':''}" style="background:var(${c})"></span>${t}</div>`;
   $('rail').innerHTML=`
+   <div class="f"><label for="fQ"><b>🔍 ค้นหา</b></label><input type="search" id="fQ" placeholder="ลำดับ เช่น 26-1 · เลขโฉนด · ตำบล" value="${esc(F.q||'')}"></div>
    <div class="f"><b>วันประมูลถัดไป</b><div class="chips" id="fDate"></div></div>
    ${R.type?'':'<div class="f"><b>ประเภททรัพย์</b><div class="chips" id="fType"></div></div>'}
    <div class="f"><b>ล็อต (เดือนที่ประกาศ)</b><div class="chips" id="fLot"></div></div>
@@ -425,6 +429,7 @@ function buildRail(){
   if($('fAm'))$('fAm').onchange=e=>{F.am=e.target.value;F.tb='';fillTb();renderRoute(true)};
   $('fTb').onchange=e=>{F.tb=e.target.value;renderRoute(true)};
   $('fMax').oninput=e=>{F.max=+e.target.value||0;renderRoute(false)};
+  $('fQ').oninput=e=>{F.q=e.target.value;renderRoute(!!F.q)};
 }
 
 // ---------- map ----------
@@ -601,8 +606,14 @@ async function renderAnalysis(area){
   bindRows($('upd'));
 }
 function renderList(){
-  const rows=liveRows().filter(pass).sort((a,b)=>(a.next||'').localeCompare(b.next||'')||a.sp-b.sp);
-  $('list').innerHTML=`<h2>รายการ (${rows.length})</h2><p class="sub">ใช้ตัวกรองเดียวกับแท็บแผนที่ · กดแถวที่มีหมุดเพื่อไปดูบนแผนที่</p>${tableOf(rows)}`; bindRows($('list'));
+  const sn=s=>(String(s||'').match(/\d+/g)||[0,0]).map(Number), byDate=(a,b)=>(a.next||'9').localeCompare(b.next||'9');
+  const SORTS={'':['วันประมูล → ราคาถูกก่อน',(a,b)=>byDate(a,b)||a.sp-b.sp],seq:['วันประมูล → ลำดับ',(a,b)=>byDate(a,b)||sn(a.seq)[0]-sn(b.seq)[0]||sn(a.seq)[1]-sn(b.seq)[1]],
+    lo:['ราคาเริ่มต้น ต่ำ → สูง',(a,b)=>a.sp-b.sp],hi:['ราคาเริ่มต้น สูง → ต่ำ',(a,b)=>b.sp-a.sp],tb:['ตำบล',(a,b)=>(a.tbx||'').localeCompare(b.tbx||'')||byDate(a,b)],
+    pin:['ยังไม่มีพิกัดจริงก่อน',(a,b)=>(!a.approx&&a.lat?1:0)-(!b.approx&&b.lat?1:0)||byDate(a,b)]};
+  const rows=liveRows().filter(pass).sort((SORTS[F.sort]||SORTS[''])[1]);
+  $('list').innerHTML=`<h2>รายการ (${rows.length})</h2><p class="sub">ใช้ตัวกรองเดียวกับแท็บแผนที่ · กดแถวที่มีหมุดเพื่อไปดูบนแผนที่ ·
+    <label>เรียงตาม <select id="fSort">${Object.entries(SORTS).map(([k,[t]])=>`<option value="${k}"${(F.sort||'')===k?' selected':''}>${t}</option>`).join('')}</select></label></p>${tableOf(rows)}`; bindRows($('list'));
+  $('fSort').onchange=e=>{F.sort=e.target.value;renderList()};
 }
 function exportMy(){const s=JSON.stringify({items:MY,notes:NOTES,saved:new Date().toISOString()},null,1);const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([s],{type:'application/json'}));
   a.download='รายการของฉัน_'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove()}

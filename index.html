@@ -476,7 +476,7 @@ function drawPins(fit){
     r.mk=(r.won?L.marker([r.lat,r.lon],{icon:r.spec?MONEYSTAR:MONEY,zIndexOffset:r.spec?900:500}):r.spec?L.marker([r.lat,r.lon],{icon:STARPIN,zIndexOffset:800}):L.circleMarker([r.lat,r.lon],{radius:7,color:r.spec?css('--brand'):css('--surface'),weight:r.spec?3:2,fillColor:css('--mut'),fillOpacity:.7})).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
   // สนใจพิเศษที่ยังไม่กลับมาประมูล (อยู่ในคลังเท่านั้น)
   if(F.mine==='spec'||F.mine==='seen') (SEEN[R0.area]||[]).filter(g=>!(g.cur||[]).length&&g.lat&&(F.mine==='seen'?(g.parked&&MY[PK(g.k)]!=='none'):g.sp)).forEach(g=>{
-    L.marker([g.lat,g.lon],{icon:g.won?(g.sp?MONEYSTAR:MONEY):(g.sp?STARPIN:WAIT)}).bindPopup(()=>popSeen(g),{maxWidth:300}).addTo(pinLayer);pts.push([g.lat,g.lon])});
+    g.mk=L.marker([g.lat,g.lon],{icon:g.won?(g.sp?MONEYSTAR:MONEY):(g.sp?STARPIN:WAIT)}).bindPopup(()=>popSeen(g),{maxWidth:300}).addTo(pinLayer);pts.push([g.lat,g.lon])});
   list.filter(r=>r.lat).forEach(r=>{const m=kindOf(r);
     r.mk=L.circleMarker([r.lat,r.lon],{radius:m?10:8,color:m==='bid'?css('--debt'):m==='watch'?css('--nobid'):css('--surface'),weight:m?4:2,
       fillColor:css(colorOf(r)),fillOpacity:r.approx?.55:.92,dashArray:r.approx&&!m?'3 3':null}).bindPopup(()=>pop(r),{maxWidth:300,autoPanPadding:[20,20]}).addTo(pinLayer);
@@ -651,7 +651,7 @@ function renderMine(){
 }
 function parkRow(P){const g=P.g,s=P.snap||{},x=g?g.list[g.list.length-1]:null,cur=P.rows.find(r=>!r.red&&(r.d[0]||'')<=P.since)||P.rows[0];
   const img=g&&g.img?'img/'+g.img:(s.pic||(cur&&cur.pic)?'img/'+(s.pic||cur.pic):'');const ty=g?g.ty:(s.ty||''),tb=g?g.tb:s.tb,am=g?g.am:s.am,note=(g&&g.note)||s.note||'';
-  const won=g&&g.won;return `<div class="seenrow" ${cur&&cur.lat?`data-k="${esc(cur.k)}" data-a="${cur.area}"`:''}>${PUBLIC&&img?`<img class="th" src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">`:''}
+  const won=g&&g.won;return `<div class="seenrow" ${cur&&cur.lat?`data-k="${esc(cur.k)}" data-a="${cur.area}"`:g&&g.lat?`data-gk="${esc(g.k)}" data-a="${esc(s.area||ROUTES[route].area)}"`:''}>${PUBLIC&&img?`<img class="th" src="${esc(img)}" alt="" loading="lazy" onerror="this.remove()">`:''}
   <div><b>${g&&g.sp?'⭐ ':''}${esc(ty)} · ต.${esc(tb)} อ.${esc(am)}</b> <small>โฉนด ${esc(g?g.dn:s.dn)} · ${esc(g?g.cs:s.cs)}</small><br>
   ${won?`<span class="tag t-sold">💵 จบแล้ว ขายได้ ${fm(won.price)} บ. (${fd(won.date)})${won.pr?' · '+Math.round(won.price/won.pr*100)+'%':''}</span> `:''}${cur&&!cur.red?`<span class="tag t-nobid">ยังประมูลล็อตเดิมอยู่ · ${esc(cur.lotTxt)} ${cur.roundTxt} นัด ${fd(cur.next)}</span> `:(won?'':'<span class="tag t-pend">⏳ รอกลับมา</span> ')}
   <span class="tag t-round">รอตั้งแต่ล็อตที่เริ่ม ${fd(P.since)}${g&&g.n>1?' · เคยประกาศ '+g.n+' รอบ':''}</span>${P.snap?' <small>(เพิ่มเอง)</small>':''}${x?` <small>ประเมิน ${fm(x.pr)}${x.db?' · หนี้จำนอง '+fm(x.db):''}</small>`:s.pr?` <small>ประเมิน ${fm(s.pr)}</small>`:''}
@@ -669,7 +669,11 @@ function renderSeen(){const a=ROUTES[route].area;
 }
 function bindSeen(el){el.querySelectorAll('.seenrow[data-k]').forEach(x=>x.onclick=e=>{if(e.target.closest('button'))return;const r=DATA[x.dataset.a].find(y=>y.k===x.dataset.k);if(!r)return;
   if(route.startsWith('o-')){location.hash=r.area+'-all';setTimeout(()=>{map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),300)},1500);return}
-  view='map';renderRoute(false);map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),250)})}
+  view='map';renderRoute(false);map.setView([r.lat,r.lon],16);setTimeout(()=>r.mk&&r.mk.openPopup(),250)});
+  // ทรัพย์ในคลังที่ยังไม่กลับมาประกาศ: เปิดแผนที่แบบกรอง ⭐/⏳ แล้วซูมไปที่หมุด
+  el.querySelectorAll('.seenrow[data-gk]').forEach(x=>{x.style.cursor='pointer';x.onclick=e=>{if(e.target.closest('button,img'))return;const a=x.dataset.a,g=(SEEN[a]||[]).find(y=>y.k===x.dataset.gk);if(!g)return;
+    const open=()=>{F.mine=g.sp?'spec':'seen';view='map';buildRail();renderRoute(false);map.setView([g.lat,g.lon],17);setTimeout(()=>g.mk&&g.mk.openPopup(),300)};
+    if(route!==a+'-all'){location.hash=a+'-all';setTimeout(open,1500)}else open()}})}
 function renderUpd(){
   const R=ROUTES[route], rows=DATA[R.area].filter(r=>!R.type||r.kind===R.type);
   const recent=[...new Set(rows.filter(r=>r.li>=0).map(r=>r.d[r.li]))].sort().slice(-3).reverse();

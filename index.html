@@ -223,9 +223,10 @@ function derive(r){
   const i=r.d.findIndex(d=>d>=TODAY); r.ni=i; r.next=i>=0?r.d[i]:null;
   r.nob=r.s.slice(0,i<0?r.s.length:i).filter(c=>c===3).length;
   r.fac=[1,.9,.8,.7][Math.min(r.nob,3)];
-  if(r.debtOn&&!r.fb){ // จำนองติดไป: ประมูลเฉพาะส่วนเกินหนี้ ถ้าหนี้ ≥ ราคาประเมิน เริ่มที่ 50,000
+  const fbSp=r.fb&&r.fb.sp; // fb อาจมีแค่สถานะ/หมายเหตุจากบัญชีขาย ไม่มีราคา
+  if(r.debtOn&&!fbSp){ // จำนองติดไป: ประมูลเฉพาะส่วนเกินหนี้ ถ้าหนี้ ≥ ราคาประเมิน เริ่มที่ 50,000
     const rem=r.pr-(r.db||0); r.sp=rem>0?ceilP(rem*r.fac):50000; r.spSrc=rem>0?'ประมาณ · ส่วนเกินหนี้':'หนี้เกินราคาประเมิน'; r.cost=r.sp+(r.db||0);
-  } else { r.sp=r.fb?r.fb.sp:ceilP(r.pr*r.fac); r.spSrc=r.fb?'บัญชี FB':'ประมาณ'; }
+  } else { r.sp=fbSp?r.fb.sp:ceilP(r.pr*r.fac); r.spSrc=fbSp?'บัญชี FB':'ประมาณ'; }
   let li=-1; r.d.forEach((d,j)=>{if(d<TODAY&&r.s[j]!==0)li=j}); r.li=li; r.lastCode=li>=0?r.s[li]:null;
   {const m=(r.lot||'').match(/([ก-๙]{1,3}\.[ก-๙]{1,3}\.)\s*\/\s*\d{2}(\d{2})/);r.lotTxt=m?`ล็อต ${m[1]} ${m[2]}`:'ล็อต '+(r.lot||'').replace(/\s*-\s*1$/,'');}
   r.isNew=r.ni===0; r.roundTxt=r.next?`นัดที่ ${r.ni+1}/${r.d.length}`:'ครบทุกนัดแล้ว';
@@ -524,7 +525,7 @@ function pop(r){
    ${r.lp?`<span>ราคาที่ดินทางการ</span><span>${esc(r.lp)} บ./ตร.วา</span>`:''}
    <span>นัดถัดไป</span><span><b>${fd(r.next)}</b> (นัดที่ ${r.ni+1})</span>
    <span>ภาระ</span><span>${esc(r.st)}</span>
-   ${r.fb?`<span>FB</span><span>${esc(r.fb.note)}</span>`:''}
+   ${r.fb?`<span>บัญชีขาย</span><span><b>${esc(r.fb.note)}</b>${r.fb.sp1?`<br><small>ราคาเริ่มต้นนัดแรก ${fm(r.fb.sp1)} บ.</small>`:''}<br><small>${esc(r.fb.src||'')}</small></span>`:''}
    <span>คดี</span><span>${esc(r.cs)} · ${esc(r.lot)}</span>
    ${r.pl?`<span>โจทก์</span><span>${esc(r.pl)}</span>`:''}${r.p2?`<span>จำเลย</span><span>${esc(r.p2)}</span>`:''}${r.ow?`<span>ผู้ถือกรรมสิทธิ์</span><span>${esc(r.ow)}</span>`:''}
   </div>${hist(r)}${histPrev(r)}

@@ -475,7 +475,10 @@ function drawPins(fit){
   const R0=ROUTES[route]; if(!F.date&&!F.stat) DATA[R0.area].filter(r=>r.red&&r.lat&&(kindOf(r)||r.spec||(F.mine==='seen'&&parkOf(r)))&&(!R0.type||r.kind===R0.type)&&(!F.lot||r.lotTxt===F.lot)&&(F.mine!=='spec'||r.spec)&&(F.mine!=='seen'||!!parkOf(r))&&(!F.mine||F.mine==='spec'||F.mine==='seen'||kindOf(r)===F.mine)).forEach(r=>{
     r.mk=(r.won?L.marker([r.lat,r.lon],{icon:r.spec?MONEYSTAR:MONEY,zIndexOffset:r.spec?900:500}):r.spec?L.marker([r.lat,r.lon],{icon:STARPIN,zIndexOffset:800}):L.circleMarker([r.lat,r.lon],{radius:7,color:r.spec?css('--brand'):css('--surface'),weight:r.spec?3:2,fillColor:css('--mut'),fillOpacity:.7})).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer)});
   // สนใจพิเศษที่ยังไม่กลับมาประมูล (อยู่ในคลังเท่านั้น)
-  if(F.mine==='spec'||F.mine==='seen') (SEEN[R0.area]||[]).filter(g=>!(g.cur||[]).length&&g.lat&&(F.mine==='seen'?(g.parked&&MY[PK(g.k)]!=='none'):g.sp)).forEach(g=>{
+  // ⭐ สนใจพิเศษแสดงบนแผนที่ปกติเสมอ (แม้ยังไม่กลับมาประกาศ) ถ้าไม่ได้กรองวัน/สถานะ/ประเภท
+  const kOk=g=>!R0.type||(R0.type==='h'?/สิ่งปลูกสร้าง/.test(g.ty||''):R0.type==='l'?!/สิ่งปลูกสร้าง|ห้องชุด/.test(g.ty||''):/ห้องชุด/.test(g.ty||''));
+  const showSp=!F.mine&&!F.date&&!F.stat&&!F.lot&&!F.q;
+  if(F.mine==='spec'||F.mine==='seen'||showSp) (SEEN[R0.area]||[]).filter(g=>!(g.cur||[]).length&&g.lat&&kOk(g)&&(F.mine==='seen'?(g.parked&&MY[PK(g.k)]!=='none'):g.sp)).forEach(g=>{
     g.mk=L.marker([g.lat,g.lon],{icon:g.won?(g.sp?MONEYSTAR:MONEY):(g.sp?STARPIN:WAIT)}).bindPopup(()=>popSeen(g),{maxWidth:300}).addTo(pinLayer);pts.push([g.lat,g.lon])});
   list.filter(r=>r.lat).forEach(r=>{const m=kindOf(r);
     r.mk=L.circleMarker([r.lat,r.lon],{radius:m?10:8,color:m==='bid'?css('--debt'):m==='watch'?css('--nobid'):css('--surface'),weight:m?4:2,

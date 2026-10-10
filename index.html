@@ -100,6 +100,8 @@ select,input[type=number]{width:100%;padding:6px 8px;border:1px solid var(--line
 .btn.live{background:var(--debt);border-color:var(--debt);color:#fff;font-size:13px;padding:6px 12px}
 .th{display:block;width:168px;height:112px;object-fit:cover;border-radius:6px;margin-bottom:4px;background:var(--surface2);cursor:zoom-in}
 @media (max-width:700px){.th{width:120px;height:80px}}
+details.calc{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding:6px 8px}details.calc summary{cursor:pointer;font-weight:600}
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}.cgrid label{font-size:12px;display:flex;flex-direction:column;gap:2px}.cgrid input{width:100%;min-width:0}
 #lb{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;padding:12px;cursor:zoom-out}#lb[hidden]{display:none}
 #lb img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
 .am-cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}.am-cards .card{border-top-width:1px}.am-cards .n{font-size:20px}
@@ -539,6 +541,39 @@ function popSeen(g){const x=g.list[g.list.length-1];return `<div class="pop">${g
   <div class="kv"><span>ราคาประเมินล่าสุด</span><span>${fm(x.pr)} บ.</span><span>ภาระ</span><span>${esc(x.st||'-')}${x.db?' หนี้ '+fm(x.db)+' บ.':''}</span>
   <span>ที่ตั้ง</span><span>${g.ad&&g.ad!=='-'?'เลขที่ '+esc(g.ad)+' ':''}ต.${esc(g.tb)} อ.${esc(g.am)}${g.approx?' <small>(ตำแหน่งประมาณ)</small>':''}</span><span>โฉนด</span><span>${esc(g.dn)}</span><span>คดี</span><span>${esc(g.cs)}</span>
   <span>ผลล่าสุด</span><span>${g.rep&&g.rep.length?esc(fd(g.rep[g.rep.length-1][0])+' '+g.rep[g.rep.length-1][2]):'-'}</span></div></div>`}
+// ---------- 🧮 คำนวณต้นทุน / ราคาสู้สูงสุด (สูตรใน ความรู้_ขายทอดตลาด.md หัวข้อ 7) ----------
+const INC=[[5e4,1e3],[1e5,2e3],[3e5,5e3],[5e5,1e4],[7e5,2e4],[1e6,3e4],[5e6,5e4],[2e7,1e5],[5e7,2e5],[8e7,5e5],[Infinity,1e6]];
+const incOf=p=>INC.find(([u])=>p<u)[1];
+const calcGet=k=>{try{return JSON.parse(localStorage.getItem('calc|'+k)||'null')}catch(e){return null}};
+function calcBox(r){
+  const st=(HIST[r.area]&&HIST[r.area].stat||{})[r.kind]; const med=st&&st.median?Math.round(st.median*100):0;
+  const c=calcGet(r.k)||{}; const v=c.v??r.pr, m=c.m??20, rep=c.rep??0, oth=c.oth??0, t=c.t??2.5;
+  return `<details class="calc" data-calc="${esc(r.k)}" data-a="${r.area}"><summary>🧮 คำนวณต้นทุน / ราคาสู้สูงสุด</summary>
+  <div class="cgrid">
+   <label>มูลค่าที่คาดว่าขายต่อได้ (บ.)<input type="number" step="10000" data-f="v" value="${Math.round(v)}"></label>
+   <label>กำไรที่ต้องการ (%)<input type="number" step="5" data-f="m" value="${m}"></label>
+   <label>ค่าซ่อม/ปรับปรุง (บ.)<input type="number" step="10000" data-f="rep" value="${rep}"></label>
+   <label>ค่าอื่นๆ เช่น ส่วนกลางค้าง (บ.)<input type="number" step="1000" data-f="oth" value="${oth}"></label>
+   <label>ค่าโอน+ภาษี (% ของราคาประเมิน)<input type="number" step="0.5" data-f="t" value="${t}"></label>
+  </div>
+  <p class="sub" style="margin:4px 0">ค่าเริ่มต้น = ราคาประเมิน LED${med?` · บ้าน/ที่ดินประเภทนี้ที่ขายได้จริงในสำนักงานนี้ กลางๆ ${med}% ของราคาประเมิน`:''} · แนะนำใส่ราคาบ้านมือสองแถวนั้นที่สำรวจเอง</p>
+  <div class="cout"></div></details>`}
+function calcRun(el){
+  const r=DATA[el.dataset.a].find(x=>x.k===el.dataset.calc); if(!r)return;
+  const g=f=>+(el.querySelector(`[data-f="${f}"]`).value||0); const v=g('v'),m=g('m'),rep=g('rep'),oth=g('oth'),t=g('t');
+  try{localStorage.setItem('calc|'+r.k,JSON.stringify({v,m,rep,oth,t}))}catch(e){}
+  const debt=r.debtOn?(r.db||0):0, fixed=r.pr*t/100+debt+rep+oth;
+  const costAt=b=>b+b*.005+fixed;                       // ราคาประมูล + ค่าธรรมเนียมบังคับคดี 0.5% + คงที่
+  const maxB=(v*(1-m/100)-fixed)/1.005;                // ราคาสู้สูงสุดที่ยังได้กำไรตามเป้า
+  const inc=incOf(r.sp), steps=Math.floor((maxB-r.sp)/inc), maxR=steps>=0?r.sp+steps*inc:0;
+  el.querySelector('.cout').innerHTML=`<div class="kv">
+   <span>ต้นทุน ถ้าได้ที่ราคาเริ่มต้น</span><span><b>${fm(costAt(r.sp))} บ.</b><br><small>ประมูล ${fm(r.sp)} + บังคับคดี 0.5% ${fm(r.sp*.005)} + โอน/ภาษี ${fm(r.pr*t/100)}${debt?` + หนี้จำนอง ${fm(debt)}`:''}${rep?` + ซ่อม ${fm(rep)}`:''}${oth?` + อื่นๆ ${fm(oth)}`:''}</small></span>
+   <span>กำไรถ้าได้ที่ราคาเริ่มต้น</span><span>${fm(v-costAt(r.sp))} บ. (${v?Math.round((v-costAt(r.sp))/v*100):0}% ของมูลค่า)</span>
+   <span>ราคาสู้สูงสุด</span><span>${maxR?`<b style="color:var(--debt)">${fm(maxR)} บ.</b><br><small>เคาะเพิ่มครั้งละ ${fm(inc)} บ. · สู้ได้อีก ${steps} ครั้งจากราคาเริ่มต้น</small>`:`<b>ไม่คุ้ม</b><br><small>แม้ได้ที่ราคาเริ่มต้นก็ไม่ถึงกำไร ${m}%</small>`}</span>
+   <span>ต้องเตรียมเงิน</span><span>เงินประกัน ${fm(r.rf)} บ. วันประมูล · ส่วนที่เหลือภายใน 15 วัน</span></div>
+   <p class="sub" style="margin:4px 0">สูตร: ราคาสู้สูงสุด = (มูลค่า × (1 − กำไร%) − ค่าโอน/ภาษี − หนี้จำนอง − ซ่อม − อื่นๆ) ÷ 1.005 แล้วปัดลงตามขั้นเคาะราคา · ค่าโอน/ภาษีจริงให้ยืนยันที่สำนักงานที่ดิน</p>`}
+document.addEventListener('toggle',e=>{if(e.target.matches&&e.target.matches('details.calc')&&e.target.open)calcRun(e.target)},true);
+document.addEventListener('input',e=>{const el=e.target.closest&&e.target.closest('details.calc');if(el)calcRun(el)});
 function pop(r){
   const loc=r.area==='bk'?`เขต${esc(r.am)} แขวง${esc(r.tb)}`:`${r.am?'อ.'+esc(r.am)+' ':''}ต.${esc(r.tb)}`;
   const gm=r.approx?`https://www.google.com/maps/search/${encodeURIComponent((r.ad&&r.ad!=='-'?r.ad+' ':'')+'แขวง'+r.tb+' เขต'+r.am+' กรุงเทพมหานคร')}`:`https://www.google.com/maps?q=${r.lat},${r.lon}`;
@@ -564,7 +599,7 @@ function pop(r){
    <span>คดี</span><span>${esc(r.cs)} · ${esc(r.lot)}</span>
    ${r.pl?`<span>โจทก์</span><span>${esc(r.pl)}</span>`:''}${(()=>{const n=nameOf(r);if(n)return `${n[0]?`<span>จำเลย</span><span>${esc(n[0])}</span>`:''}${n[1]?`<span>ผู้ถือกรรมสิทธิ์</span><span>${esc(n[1])}</span>`:''}`;
      return PUBLIC?`<span>จำเลย/เจ้าของ</span><span><button type="button" class="btn" data-unlock="1">🔒 ดูชื่อ (ใส่รหัส)</button></span>`:''})()}
-  </div>${hist(r)}${histPrev(r)}
+  </div>${hist(r)}${histPrev(r)}${r.red?'':calcBox(r)}
   <label class="notelbl" for="note-${esc(r.k)}">📝 โน้ตของฉัน</label>
   <textarea class="note-in" id="note-${esc(r.k)}" data-note="${esc(r.k)}" rows="2" placeholder="เช่น ไปดูแล้ว ทางเข้าแคบ / ราคาที่ตั้งใจสู้">${esc(noteOf(r))}</textarea>
   <span class="notesaved" id="ns-${esc(r.k)}"></span>

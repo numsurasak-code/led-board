@@ -607,7 +607,8 @@ async function renderAnalysis(area){
 }
 function renderList(){
   const sn=s=>(String(s||'').match(/\d+/g)||[0,0]).map(Number), byDate=(a,b)=>(a.next||'9').localeCompare(b.next||'9');
-  const SORTS={'':['วันประมูล → ราคาถูกก่อน',(a,b)=>byDate(a,b)||a.sp-b.sp],seq:['วันประมูล → ลำดับ',(a,b)=>byDate(a,b)||sn(a.seq)[0]-sn(b.seq)[0]||sn(a.seq)[1]-sn(b.seq)[1]],
+  const bySeq=(a,b)=>sn(a.seq)[0]-sn(b.seq)[0]||sn(a.seq)[1]-sn(b.seq)[1];
+  const SORTS={'':['ล็อต (มิ.ย. → ก.ค. → …) → ลำดับ',(a,b)=>(a.d[0]||'').localeCompare(b.d[0]||'')||bySeq(a,b)],price:['วันประมูล → ราคาถูกก่อน',(a,b)=>byDate(a,b)||a.sp-b.sp],seq:['วันประมูล → ลำดับ',(a,b)=>byDate(a,b)||sn(a.seq)[0]-sn(b.seq)[0]||sn(a.seq)[1]-sn(b.seq)[1]],
     lo:['ราคาเริ่มต้น ต่ำ → สูง',(a,b)=>a.sp-b.sp],hi:['ราคาเริ่มต้น สูง → ต่ำ',(a,b)=>b.sp-a.sp],tb:['ตำบล',(a,b)=>(a.tbx||'').localeCompare(b.tbx||'')||byDate(a,b)],
     pin:['ยังไม่มีพิกัดจริงก่อน',(a,b)=>(!a.approx&&a.lat?1:0)-(!b.approx&&b.lat?1:0)||byDate(a,b)]};
   const rows=liveRows().filter(pass).sort((SORTS[F.sort]||SORTS[''])[1]);

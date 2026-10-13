@@ -416,6 +416,7 @@ function renderHub(a){
      ${live.length?card(a+'-all','--ink','🗺️ ทุกประเภท','แผนที่รวม',live.length):''}
      ${A.types.map(k=>live.length?card(a+'-'+k,k==='h'?'--house':k==='l'?'--land':'--condo',(k==='h'?'🏠 ':k==='l'?'🌳 ':'🏢 ')+KN[k],k==='h'?'ที่ดินพร้อมสิ่งปลูกสร้าง':k==='c'?'คอนโด / อาคารชุด':'ที่ดินเปล่า',c(r=>r.kind===k)):'').join('')}
      ${A.ana?`<button type="button" class="card" style="--c:var(--brand)" data-go="${a}-ana"><b>📊 วิเคราะห์การประมูล</b><span class="n">6 เดือน</span><span class="s">ราคาขายจริง · นัดที่ขายได้ · การสู้ราคา · ทำเล</span></button>`:''}
+     ${a==='cy'?`<a class="card" style="--c:#e8590c;text-decoration:none;color:inherit" href="hot.html" target="_blank" rel="noopener"><b>🔥 ทำเลแข่งขันสูง</b><span class="n">${DATA[a].filter(r=>r.hot&&r.lat&&!r.approx).length}</span><span class="s">แผนที่ดาวเทียม · รูป · เหตุผลรายแปลง</span></a>`:''}
     </div></div>
    ${(()=>{const ams=[...new Set(live.map(r=>r.am).filter(Boolean))].sort((x,y)=>c(r=>r.am===y)-c(r=>r.am===x));if(ams.length<2)return '';
      return `<div class="area"><h2>${a==='bk'?'แยกตามเขต':'แยกตามอำเภอ'}</h2><div class="cards am-cards">${ams.map(m=>`<button type="button" class="card" style="--c:var(--line)" data-am="${esc(m)}"><b>${esc(m)}</b><span class="n">${c(r=>r.am===m)}</span><span class="s">บ้าน ${c(r=>r.am===m&&r.kind==='h')} · ที่ดิน ${c(r=>r.am===m&&r.kind==='l')}${a==='bk'?' · ห้องชุด '+c(r=>r.am===m&&r.kind==='c'):''}</span></button>`).join('')}</div></div>`})()}

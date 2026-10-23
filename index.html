@@ -282,7 +282,7 @@ function addHist(r,H){
   if(r.prevN&&!r.debtOn){
     const prev=r.H.filter(x=>!cur.has(x[0])).sort((a,b)=>a[0]<b[0]?-1:1), last=prev[prev.length-1];
     let k=prev.length-1; while(k>0&&prev[k-1][1]===last[1]) k--; const lot=prev.slice(k);
-    if(last[2]==='ขายได้'&&last[3]>0) r.carry={amt:last[3],tier:Math.min(lot.filter(x=>x[2]==='ไม่มีผู้สู้').length,3),k:r.nob,why:'ผู้ชนะล็อตก่อนไม่ชำระ'};
+    if(last[2]==='ขายได้'&&last[3]>=r.pr*.5) r.carry=  // < 50% = น่าจะเคยขายแบบติดจำนอง (ส่วนเกินหนี้) ไม่ใช้{amt:last[3],tier:Math.min(lot.filter(x=>x[2]==='ไม่มีผู้สู้').length,3),k:r.nob,why:'ผู้ชนะล็อตก่อนไม่ชำระ'};
     else if(last[2]==='ไม่มีผู้สู้') r.carry={tier:3,k:0,why:'ล็อตก่อนหลุดครบทุกนัด (เริ่ม 70%)'};
   }
   if(!r.debtOn&&!r.red&&r.ni>0){const j=r.s.slice(0,r.ni).lastIndexOf(1);  // ผู้ชนะไม่ชำระในล็อตนี้ (เช่น 37-1 ขายได้ 630,000 ทั้ง 22/9 และ 12/10)

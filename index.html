@@ -263,6 +263,9 @@ function price(r,prevNob){
     r.spSrc=r.nob?`ประมาณจากบัญชี FB (${Math.round(fNow*100)}%)`:'บัญชี FB';if(r.debtOn)r.cost=r.sp+(r.db||0);return}
   if(r.debtOn){ // จำนองติดไป: ประมูลเฉพาะส่วนเกินหนี้ ถ้าหนี้ ≥ ราคาประเมิน เริ่มที่ 50,000
     const rem=r.pr-(r.db||0); r.sp=rem>0?ceilP(rem*r.fac):50000; r.spSrc=rem>0?'ประมาณ · ส่วนเกินหนี้':'หนี้เกินราคาประเมิน'; r.cost=r.sp+(r.db||0);
+  } else if(r.carry){ const c=r.carry; // ดู addHist
+    if(c.amt&&!r.nob){r.sp=c.amt;r.fac=c.amt/r.pr;} else {r.fac=[1,.9,.8,.7][Math.min(c.tier+r.nob,3)];r.sp=ceilP(r.pr*r.fac);}
+    r.spSrc='ประมาณ · '+c.why;
   } else { r.sp=ceilP(r.pr*r.fac); r.spSrc=prevNob?'ประมาณ · ลดต่อจากล็อตก่อน':'ประมาณ'; }
 }
 function addHist(r,H){
@@ -273,6 +276,16 @@ function addHist(r,H){
   // ล็อตใหม่เริ่ม 100% เสมอ (ตรวจกับบัญชีขาย 12 ต.ค. 69: โฉนด 113939 เคยไม่มีผู้สู้ 3 นัดในล็อต เม.ย. แต่ล็อต ก.ย. เริ่มใหม่ 100%) จึงไม่นับนัดของล็อตก่อน
   r.hot=(H.hot||{})[r.hk]||null; // [%ของราคาเริ่มต้น, ราคาขายได้, วันที่, %ของราคาประเมิน] เมื่อขายได้ ≥110% ของราคาเริ่มต้น
   const soldH=r.H.find(x=>x[3]>0); r.soldPrice=soldH?soldH[3]:0; r.soldDate=soldH?soldH[0]:'';
+  // กติกาจากผู้ใช้ (23/10/69 · ยังรอยืนยันกับบัญชี FB): ล็อตก่อนลงไปถึงนัด 70% แล้ว → ล็อตใหม่เริ่ม 70%
+  // ผู้ชนะไม่มาชำระ (ขายได้แล้วกลับมาประกาศ) → เริ่มที่ราคาที่ประมูลได้ ถ้าไม่มีผู้สู้ลดขั้นถัดจากนัดที่ขายได้ (เช่น ขายนัด 90% → นัดถัดไป 80%)
+  if(r.prevN&&!r.debtOn){
+    const prev=r.H.filter(x=>!cur.has(x[0])).sort((a,b)=>a[0]<b[0]?-1:1), last=prev[prev.length-1];
+    let k=prev.length-1; while(k>0&&prev[k-1][1]===last[1]) k--; const lot=prev.slice(k);
+    const si=lot.findIndex(x=>x[2]==='ขายได้'&&x[3]>0);
+    if(si>=0&&si===lot.length-1){ r.carry={amt:lot[si][3],tier:Math.min(lot.slice(0,si).filter(x=>x[2]==='ไม่มีผู้สู้').length,3),why:'ผู้ชนะนัดก่อนไม่ชำระ'}; }
+    else if(lot.filter(x=>x[2]==='ไม่มีผู้สู้').length>=4) r.carry={tier:3,why:'ล็อตก่อนลงถึง 70% แล้ว'};
+    if(r.carry) price(r,0);
+  }
   r.caseYear=+((r.cs||'').split('/')[1]||0); r.caseAge=r.caseYear?2569-r.caseYear:0;
   return r;
 }
@@ -345,7 +358,7 @@ function saveNote(k,txt){const r=allRows().find(x=>x.k===k);if(!r)return;txt=txt
   if(txt===(r.pn||''))delete NOTES[k];else NOTES[k]=txt;writeMy();if(saveMode!=='db')noteFlag('บันทึกในเครื่องนี้แล้ว');else noteFlag('กำลังบันทึก…');}
 
 // ---------- routing ----------
-let route='home', view='map', F={date:'',type:'',debt:'',tb:'',max:0,mine:'',stat:'',lot:'',am:''};
+let route='home', view='map', F={date:'',type:'',debt:'',tb:'',max:0,mine:'',stat:'',es:'',lot:'',am:''};
 function go(r){const h=r==='home'?'':r; if(location.hash.slice(1)!==h) location.hash=h; else show(r)}  // hashchange เรียก show เอง
 window.addEventListener('hashchange',()=>show(location.hash.slice(1)||'home'));
 $('btnHome').onclick=()=>go('home');
@@ -359,7 +372,7 @@ async function show(r){
   if(!R.hub){$('btnHub').hidden=false;$('btnHub').textContent='‹ '+AREAS[R.area].short}
   if(R.hub){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sHome'); renderHub(R.area); return; }
   if(R.page){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sUpd'); await renderAnalysis(R.area); return; }
-  F={date:'',type:R.type,debt:'',tb:'',max:0,mine:'',stat:'',lot:'',am:PRE_AM}; PRE_AM=''; view=PRE_VIEW||'map'; PRE_VIEW='';
+  F={date:'',type:R.type,debt:'',tb:'',max:0,mine:'',stat:'',es:'',lot:'',am:PRE_AM}; PRE_AM=''; view=PRE_VIEW||'map'; PRE_VIEW='';
   $('tabs').hidden=false; $('title').textContent=R.title; $('sched').innerHTML=esc(AREAS[R.area].sched)+(AREAS[R.area].live?` · <a href="${AREAS[R.area].live}" target="_blank" rel="noopener" style="color:inherit;font-weight:600">🔴 ดูประมูลสด</a>`:'');
   buildRail(); drawBase(R.area); renderRoute(true);
 }
@@ -441,7 +454,7 @@ function liveRows(){const R=ROUTES[route];return DATA[R.area].filter(r=>!r.red&&
 // ค้นหา: "26-1" = ลำดับตรงตัว · อย่างอื่นค้นในลำดับ/โฉนด/ตำบล/อำเภอ/คดี/โจทก์
 const qn=s=>String(s||'').replace(/\s/g,'').toLowerCase();
 const qpass=r=>{const q=qn(F.q);if(!q)return true;if(/^\d+-\d+$/.test(q))return qn(r.seq)===q;if(/^\d+$/.test(q))return qn(r.seq).split('-')[0]===q||qn(r.dn).includes(q);return [r.seq,r.dn,r.tb,r.am,r.cs,r.pl,...(nameOf(r)||[])].map(qn).join('|').includes(q)};
-const pass=r=>qpass(r)&&(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?(!!parkOf(r)&&!isBack(r)):kindOf(r)===F.mine));
+const pass=r=>qpass(r)&&(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.es||String(r.es||'')===F.es)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?(!!parkOf(r)&&!isBack(r)):kindOf(r)===F.mine));
 function chips(id,opts,prop){const el=$(id);el.innerHTML=opts.map(([v,l])=>`<button type="button" class="chip" aria-pressed="${F[prop]===v}" data-v="${v}">${l}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;F[prop]=b.dataset.v;chips(id,opts,prop);renderRoute(true)}}
 function buildRail(){
   const R=ROUTES[route], A=AREAS[R.area], live=liveRows();
@@ -452,6 +465,7 @@ function buildRail(){
    <div class="f"><label for="fQ"><b>🔍 ค้นหา</b></label><input type="search" id="fQ" placeholder="ลำดับ เช่น 26-1 · เลขโฉนด · ตำบล" value="${esc(F.q||'')}"></div>
    <div class="f"><b>วันประมูลถัดไป</b><div class="chips" id="fDate"></div></div>
    ${R.type?'':'<div class="f"><b>ประเภททรัพย์</b><div class="chips" id="fType"></div></div>'}
+   ${!R.type||R.type==='h'?'<div class="f"><b>ลักษณะบ้าน <small style="font-weight:400;color:var(--mut)">(คาดจากเลขโฉนดติดกัน/โน้ต)</small></b><div class="chips" id="fEs"></div></div>':''}
    <div class="f"><b>ล็อต (เดือนที่ประกาศ)</b><div class="chips" id="fLot"></div></div>
    <div class="f"><b>สถานะทรัพย์</b><div class="chips" id="fStat"></div></div>
    <div class="f"><b>ภาระผูกพัน</b><div class="chips" id="fDebt"></div></div>
@@ -468,6 +482,7 @@ function buildRail(){
    <div class="note">${A.note}</div>`;
   chips('fDate',[['','ทุกวัน'],...dates.map(d=>[d,fd(d)+' ('+live.filter(r=>r.next===d).length+')'])],'date');
   if(!R.type) chips('fType',[['','ทั้งหมด'],['h','บ้าน'],['l','ที่ดินเปล่า']],'type');
+  if(!R.type||R.type==='h') chips('fEs',[['','ทั้งหมด'],['1','🏘 บ้านจัดสรร ('+live.filter(r=>r.es===1).length+')'],['2','🏠 ปลูกเอง/ทั่วไป ('+live.filter(r=>r.es===2).length+')']],'es');
   {const lots=[...new Set(live.map(r=>r.lotTxt))].sort((a,b)=>{const k=x=>{const r=live.find(y=>y.lotTxt===x);return r.d[0]||''};return k(a).localeCompare(k(b))});
    chips('fLot',[['','ทุกล็อต'],...lots.map(l=>[l,l.replace('ล็อต ','')+' ('+live.filter(r=>r.lotTxt===l).length+')'])],'lot');}
   chips('fDebt',[['','ทั้งหมด'],['free','ปลอดภาระ'],['debt','ติดจำนอง']],'debt');
@@ -580,7 +595,7 @@ function pop(r){
   const loc=r.area==='bk'?`เขต${esc(r.am)} แขวง${esc(r.tb)}`:`${r.am?'อ.'+esc(r.am)+' ':''}ต.${esc(r.tb)}`;
   const gm=r.approx?`https://www.google.com/maps/search/${encodeURIComponent((r.ad&&r.ad!=='-'?r.ad+' ':'')+'แขวง'+r.tb+' เขต'+r.am+' กรุงเทพมหานคร')}`:`https://www.google.com/maps?q=${r.lat},${r.lon}`;
   return `<div class="pop">${r.won?`<div class="wonbar">✅ จบแล้ว · ขายได้ <b>${fm(r.soldPrice)} บ.</b> (${fd(r.soldDate)})${r.pr?` · ${Math.round(r.soldPrice/r.pr*100)}% ของราคาประเมิน`:''}</div>`:''}
-  <h3>${r.spec?'⭐ ':''}ลำดับ ${esc(r.seq)} · ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดินเปล่า'}</h3>
+  <h3>${r.spec?'⭐ ':''}ลำดับ ${esc(r.seq)} · ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดินเปล่า'}${r.es===1?' <small title="คาดว่าเป็นบ้านในหมู่บ้านจัดสรร (เลขโฉนดติดกัน/โน้ต)">🏘 จัดสรร</small>':r.es===2?' <small title="คาดว่าเป็นบ้านปลูกเอง/ทั่วไป">🏠 ปลูกเอง</small>':''}</h3>
   ${r.seenG?seenBox(r.seenG,r):''}
   <div class="round"><span class="tag t-lot">${esc(r.lotTxt)}</span>${r.red?`<span class="tag t-wd">ปิดแล้ว: ${esc(st(r.s.find(c=>c&&c!==3)||r.lastCode)[0])}</span>`:''}${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}</div>
   ${PUBLIC&&r.pic?`<a href="img/${esc(r.pic)}" target="_blank" rel="noopener"><img class="ph" src="img/${esc(r.pic)}" alt="ภาพทรัพย์ลำดับ ${esc(r.seq)}" loading="lazy" onerror="this.src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}';this.onerror=()=>this.remove()"></a>`:''}

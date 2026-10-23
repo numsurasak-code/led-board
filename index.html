@@ -478,7 +478,7 @@ function buildRail(){
    <div class="f"><b>แสดงเฉพาะ</b><div class="chips" id="fMine"></div></div>
    <div class="f legend"><b>สีหมุด</b>
      ${!R.type||R.type==='h'?lg('--house','บ้าน'):''}${!R.type||R.type==='l'?lg('--land','ที่ดินว่างเปล่า'):''}${R.type==='c'?lg('--condo','ห้องชุด (ตำแหน่งอาคาร)'):''}
-     ${lg('--debt','ติดภาระ (จำนองติดไป)')}${lg('--mut','หมุดเส้นประ = ตำแหน่งประมาณกลางตำบล/แขวง',true)}
+     ${lg('--debt','ติดภาระ (จำนองติดไป)')}<div>จำนองติดไป (ต้นทุนรวม ÷ ราคาประเมินกรม): 🟢 น่าดู ≤1.3 เท่า · 🟡 ต้องรู้ราคาตลาดก่อน ≤2 เท่า · 🔴 สูงเกินไป</div>${lg('--mut','หมุดเส้นประ = ตำแหน่งประมาณกลางตำบล/แขวง',true)}
      ${lg('--mut','ที่เฝ้าดูไว้แต่ปิดแล้ว (งด/ถอน)')}<div>💵 เฝ้าดูไว้แล้วขายไป · 💵⭐ สนใจพิเศษที่ขายแล้ว · ⭐ สนใจพิเศษ (เน้นสู้ราคา)</div>
      <div style="color:var(--mut)">ขอบแดง = สนใจประมูล · ขอบส้ม = เฝ้าดู · มีจุดกลาง = ทรัพย์ใหม่</div></div>
    <div class="count" id="cnt"></div>
@@ -522,6 +522,8 @@ function drawBase(area){
   map.setView(AREAS[area].center,AREAS[area].zoom);
 }
 const MONEY=L.divIcon({className:'emo',html:'💵',iconSize:[26,26],iconAnchor:[13,13]}), MONEYSTAR=L.divIcon({className:'emo',html:'💵<span class="badge-star">⭐</span>',iconSize:[30,30],iconAnchor:[15,15]}), STARPIN=L.divIcon({className:'emo starpin',html:'⭐',iconSize:[28,28],iconAnchor:[14,14]}), WAIT=L.divIcon({className:'emo',html:'⏳',iconSize:[22,22],iconAnchor:[11,11]}), STAR=L.divIcon({className:'emo star',html:'⭐',iconSize:[14,14],iconAnchor:[-2,16]});
+// จำนองติดไป: ต้นทุนรวม (ราคาเริ่ม + หนี้) ÷ ราคาประเมินกรม · ราคาตลาดมักสูงกว่าราคาประเมินกรม (ธอส. ตั้งขาย NPA ~1.9 เท่า) — ผู้ใช้ 23/10/69
+const debtGrade=r=>{if(!r.debtOn||!r.pr||!r.cost)return null;const x=r.cost/r.pr;return x<=1.3?['🟢','น่าดู',x]:x<=2?['🟡','ต้องรู้ราคาตลาดก่อน',x]:['🔴','สูงเกินไป',x]};
 const colorOf=r=>r.debtOn?'--debt':r.condo?'--condo':r.house?'--house':'--land';
 function drawPins(fit){
   pinLayer.clearLayers(); const list=liveRows().filter(pass); const pts=[];
@@ -543,6 +545,7 @@ function drawPins(fit){
       fillColor:css(colorOf(r)),fillOpacity:r.approx?.55:.92,dashArray:r.approx&&!m?'3 3':null}).bindPopup(()=>pop(r),{maxWidth:300,autoPanPadding:[20,20]}).addTo(pinLayer);
     if(r.spec){r.mk.remove();r.mk=L.marker([r.lat,r.lon],{icon:STARPIN,zIndexOffset:800}).bindPopup(()=>pop(r),{maxWidth:300}).addTo(pinLayer);}
     if(r.isNew)L.circleMarker([r.lat,r.lon],{radius:2.5,stroke:false,fillColor:css('--surface'),fillOpacity:1,interactive:false}).addTo(pinLayer);
+    const dg=debtGrade(r); if(dg) L.marker([r.lat,r.lon],{icon:L.divIcon({className:'',html:`<div style="font-size:10px;line-height:1">${dg[0]}</div>`,iconSize:[10,10],iconAnchor:[-3,13]}),interactive:false,zIndexOffset:900}).addTo(pinLayer);
     pts.push([r.lat,r.lon])});
   $('cnt').innerHTML=`ตรงเงื่อนไข <b>${list.length}</b> รายการ · มีหมุด <b>${pts.length}</b>`;
   if(fit&&pts.length>1) map.fitBounds(pts,{padding:[30,30],maxZoom:15});
@@ -603,7 +606,7 @@ function pop(r){
   <div class="round"><span class="tag t-lot">${esc(r.lotTxt)}</span>${r.red?`<span class="tag t-wd">ปิดแล้ว: ${esc(st(r.s.find(c=>c&&c!==3)||r.lastCode)[0])}</span>`:''}${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}</div>
   ${PUBLIC&&r.pic?`<a href="img/${esc(r.pic)}" target="_blank" rel="noopener"><img class="ph" src="img/${esc(r.pic)}" alt="ภาพทรัพย์ลำดับ ${esc(r.seq)}" loading="lazy" onerror="this.src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}';this.onerror=()=>this.remove()"></a>`:''}
   ${r.approx?'<div class="approx">📍 ตำแหน่งประมาณกลางแขวง ยังไม่ใช่แปลงจริง</div>':''}
-  ${r.debtOn?`<div class="warn">⚠️ จำนองติดไป: ผู้ซื้อต้องรับหนี้ ${fm(r.db)} บ.${r.dbn?' ('+esc(r.dbn)+')':''}<br><span style="font-weight:400">ต้นทุนจริง ≈ ราคาประมูล ${fm(r.sp)} + หนี้ ${fm(r.db)} = <b>${fm(r.cost)} บ.</b> (${r.pr?Math.round(r.cost/r.pr*100):'-'}% ของราคาประเมิน)</span></div>`:''}
+  ${r.debtOn?`<div class="warn">⚠️ จำนองติดไป: ผู้ซื้อต้องรับหนี้ ${fm(r.db)} บ.${r.dbn?' ('+esc(r.dbn)+')':''}<br><span style="font-weight:400">ต้นทุนจริง ≈ ราคาประมูล ${fm(r.sp)} + หนี้ ${fm(r.db)} = <b>${fm(r.cost)} บ.</b> (${r.pr?Math.round(r.cost/r.pr*100):'-'}% ของราคาประเมิน)${debtGrade(r)?`<br>${debtGrade(r)[0]} <b>${debtGrade(r)[1]}</b> · ราคาประเมินกรมมักต่ำกว่าราคาตลาด ถ้าหนี้ค้างนานอาจมีดอกเบี้ยเพิ่ม`:''}</span></div>`:''}
   <div class="kv">
    <span>ราคาประเมิน</span><span>${fm(r.pr)} บ.</span>
    <span>ราคาเริ่มต้น</span><span><b>${fm(r.sp)} บ.</b> <small>(${r.spSrc})</small></span>

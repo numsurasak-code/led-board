@@ -264,7 +264,8 @@ function price(r,prevNob){
   if(r.debtOn){ // จำนองติดไป: ประมูลเฉพาะส่วนเกินหนี้ ถ้าหนี้ ≥ ราคาประเมิน เริ่มที่ 50,000
     const rem=r.pr-(r.db||0); r.sp=rem>0?ceilP(rem*r.fac):50000; r.spSrc=rem>0?'ประมาณ · ส่วนเกินหนี้':'หนี้เกินราคาประเมิน'; r.cost=r.sp+(r.db||0);
   } else if(r.carry){ const c=r.carry; // ดู addHist
-    if(c.amt&&!r.nob){r.sp=c.amt;r.fac=c.amt/r.pr;} else {r.fac=[1,.9,.8,.7][Math.min(c.tier+r.nob,3)];r.sp=ceilP(r.pr*r.fac);}
+    // amt = ราคาที่ประมูลได้ (ผู้ชนะไม่ชำระ) ใช้นัดแรกที่กลับมา · k = นัดที่หลุดหลังจากนั้น → ลดเป็นขั้นถัดไปจากนัดที่ขายได้
+    if(c.amt&&!c.k){r.sp=c.amt;r.fac=c.amt/r.pr;} else {r.fac=[1,.9,.8,.7][Math.min(c.tier+c.k,3)];r.sp=ceilP(r.pr*r.fac);}
     r.spSrc='ประมาณ · '+c.why;
   } else { r.sp=ceilP(r.pr*r.fac); r.spSrc=prevNob?'ประมาณ · ลดต่อจากล็อตก่อน':'ประมาณ'; }
 }
@@ -273,19 +274,21 @@ function addHist(r,H){
   r.H=(H.h&&H.h[r.hk])||[];
   const cur=new Set(r.d); const prevDates=[...new Set(r.H.filter(x=>!cur.has(x[0])).map(x=>x[0]))];
   r.prevN=prevDates.length; r.relist=r.prevN>0;
-  // ล็อตใหม่เริ่ม 100% เสมอ (ตรวจกับบัญชีขาย 12 ต.ค. 69: โฉนด 113939 เคยไม่มีผู้สู้ 3 นัดในล็อต เม.ย. แต่ล็อต ก.ย. เริ่มใหม่ 100%) จึงไม่นับนัดของล็อตก่อน
   r.hot=(H.hot||{})[r.hk]||null; // [%ของราคาเริ่มต้น, ราคาขายได้, วันที่, %ของราคาประเมิน] เมื่อขายได้ ≥110% ของราคาเริ่มต้น
   const soldH=r.H.find(x=>x[3]>0); r.soldPrice=soldH?soldH[3]:0; r.soldDate=soldH?soldH[0]:'';
-  // กติกาจากผู้ใช้ (23/10/69 · ยังรอยืนยันกับบัญชี FB): ล็อตก่อนลงไปถึงนัด 70% แล้ว → ล็อตใหม่เริ่ม 70%
-  // ผู้ชนะไม่มาชำระ (ขายได้แล้วกลับมาประกาศ) → เริ่มที่ราคาที่ประมูลได้ ถ้าไม่มีผู้สู้ลดขั้นถัดจากนัดที่ขายได้ (เช่น ขายนัด 90% → นัดถัดไป 80%)
+  // กติกาเริ่มราคา (ผู้ใช้ 23/10/69 + ตรวจกับบัญชี FB ล็อต ก.ย. 69):
+  //  · ล็อตก่อนจบด้วย "ไม่มีผู้สู้" (หลุดครบทุกนัด) → ล็อตใหม่เริ่ม 70% (ตรง 8/9 แปลง) · จบด้วย "งด" → กลับ 100% (7/7 เช่น โฉนด 113939)
+  //  · ผู้ชนะไม่มาชำระ → ประกาศใหม่เริ่มที่ราคาที่ประมูลได้ ถ้าไม่มีผู้สู้ลดขั้นถัดจากนัดที่ขายได้ (ขายนัด 90% → 80%)
   if(r.prevN&&!r.debtOn){
     const prev=r.H.filter(x=>!cur.has(x[0])).sort((a,b)=>a[0]<b[0]?-1:1), last=prev[prev.length-1];
     let k=prev.length-1; while(k>0&&prev[k-1][1]===last[1]) k--; const lot=prev.slice(k);
-    const si=lot.findIndex(x=>x[2]==='ขายได้'&&x[3]>0);
-    if(si>=0&&si===lot.length-1){ r.carry={amt:lot[si][3],tier:Math.min(lot.slice(0,si).filter(x=>x[2]==='ไม่มีผู้สู้').length,3),why:'ผู้ชนะนัดก่อนไม่ชำระ'}; }
-    else if(lot.filter(x=>x[2]==='ไม่มีผู้สู้').length>=4) r.carry={tier:3,why:'ล็อตก่อนลงถึง 70% แล้ว'};
-    if(r.carry) price(r,0);
+    if(last[2]==='ขายได้'&&last[3]>0) r.carry={amt:last[3],tier:Math.min(lot.filter(x=>x[2]==='ไม่มีผู้สู้').length,3),k:r.nob,why:'ผู้ชนะล็อตก่อนไม่ชำระ'};
+    else if(last[2]==='ไม่มีผู้สู้') r.carry={tier:3,k:0,why:'ล็อตก่อนหลุดครบทุกนัด (เริ่ม 70%)'};
   }
+  if(!r.debtOn&&!r.red&&r.ni>0){const j=r.s.slice(0,r.ni).lastIndexOf(1);  // ผู้ชนะไม่ชำระในล็อตนี้ (เช่น 37-1 ขายได้ 630,000 ทั้ง 22/9 และ 12/10)
+    if(j>=0){const w=r.H.find(x=>x[0]===r.d[j]&&x[3]>0); if(w) r.carry={amt:w[3],tier:Math.min(r.s.slice(0,j).filter(c=>c===3).length,3),
+      k:r.s.slice(j+1,r.ni).filter(c=>c===3).length,why:'ผู้ชนะนัด '+fd(r.d[j])+' ไม่ชำระ'};}}
+  if(r.carry) price(r,0);
   r.caseYear=+((r.cs||'').split('/')[1]||0); r.caseAge=r.caseYear?2569-r.caseYear:0;
   return r;
 }

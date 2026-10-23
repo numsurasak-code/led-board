@@ -283,7 +283,7 @@ async function load(area){
   HIST[area]=h||{h:{},sold:[],stat:{}}; BASE[area]=b;
   let sv=[]; if(AREAS[area].seen){try{sv=await fetch(AREAS[area].seen,{cache:'no-cache'}).then(r=>r.json())}catch(e){}}
   SEEN[area]=sv; const byK=Object.fromEntries(sv.map(g=>[g.k,g])); SEENK[area]=byK;
-  DATA[area]=d.map(r=>{addHist(derive(r),HIST[area]);const g=byK[r.hk];if(g){r.seenG=g;r.spec=!!g.sp;g.cur=g.cur||[];g.cur.push(r);
+  DATA[area]=d.map(r=>{addHist(derive(r),HIST[area]);const g=byK[r.hk];if(r.spx)r.spec=true;if(g){r.seenG=g;r.spec=!!g.sp||!!r.spx;g.cur=g.cur||[];g.cur.push(r);
     // ทรัพย์ที่เคยดู ถ้ายังอยู่ในประกาศ ให้ถือเป็นเฝ้าดูด้วย
   }
     if(r.red&&r.soldPrice)r.won=1;return r});

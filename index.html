@@ -110,7 +110,7 @@ details.calc{margin:8px 0;border:1px solid var(--line);border-radius:8px;padding
 .leaflet-control-layers-toggle::after{content:'🛰️ ดาวเทียม / แผนที่'}
 .leaflet-control-layers{background:var(--surface);color:var(--ink)}
 .btn.park.on{background:var(--stop-bg);border-color:var(--stop);color:var(--stop)}
-.emo .badge-star{position:absolute;right:-4px;top:-8px;font-size:13px}.emo{position:relative}.emo.starpin{font-size:24px}
+.emo .badge-star{position:absolute;right:-4px;top:-8px;font-size:13px}/* ห้ามใส่ position:relative ที่ .emo — ทับ position:absolute ของ Leaflet ทำให้หมุดเลื่อนตอนซูม */.emo.starpin{font-size:24px}
 .emo{font-size:22px;line-height:1;text-align:center;filter:drop-shadow(0 1px 1px #0006)}.emo.star{font-size:12px}
 .wonbar{background:var(--land);color:#fff;border-radius:6px;padding:6px 8px;margin:-2px 0 6px;font-size:13px}
 .seenbox{background:var(--stop-bg);color:var(--ink);border-radius:6px;padding:6px 8px;margin:4px 0 6px;font-size:12px}.seenbox details{margin-top:4px}

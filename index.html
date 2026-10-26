@@ -255,7 +255,12 @@ document.addEventListener('click',async e=>{const b=e.target.closest('[data-unlo
 function price(r,prevNob){
   const n=Math.min(r.nob+prevNob,3); r.fac=[1,.9,.8,.7][n];
   const fb=r.fb||{};
-  if(fb.sp){r.sp=fb.sp;r.spSrc='บัญชี FB';if(r.debtOn)r.cost=r.sp+(r.db||0);return}
+  // fb.spd = วันนัดที่ราคานี้ใช้ · ผ่านวันนั้นแล้ว (ไม่มีผู้สู้) → ลดขั้นต่อจากราคาในบัญชี
+  if(fb.sp&&(!fb.spd||!r.next||r.next<=fb.spd)){r.sp=fb.sp;r.spSrc='บัญชี FB';if(r.debtOn)r.cost=r.sp+(r.db||0);return}
+  if(fb.sp&&fb.spd&&r.pr>0){const k=r.d.reduce((a,d,j)=>a+(d>=fb.spd&&d<r.next&&r.s[j]===3?1:0),0), q=fb.sp/r.pr,
+      t=[1,.9,.8,.7].find(x=>Math.abs(q-x)<=.03);
+    if(t){r.fac=Math.max(.7,t-.1*k);r.sp=k?ceilP(r.pr*r.fac):fb.sp;r.spSrc=k?`ประมาณต่อจากบัญชี FB (${Math.round(r.fac*100)}%)`:'บัญชี FB';if(r.debtOn)r.cost=r.sp+(r.db||0);return}
+    if(!k){r.sp=fb.sp;r.spSrc='บัญชี FB';if(r.debtOn)r.cost=r.sp+(r.db||0);return}}
   if(fb.sp1&&r.pr>0){ // เริ่มจากราคานัดแรกจริงของล็อต แล้วลดตามนัดที่ไม่มีผู้สู้ในล็อตนี้
     const f1=r.debtOn?1:[1,.9,.8,.7].reduce((a,b)=>Math.abs(fb.sp1/r.pr-b)<Math.abs(fb.sp1/r.pr-a)?b:a);
     const fNow=Math.max(.7,f1-.1*r.nob); r.sp=r.nob?ceilP(fb.sp1*fNow/f1):fb.sp1;

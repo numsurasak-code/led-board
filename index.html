@@ -459,7 +459,8 @@ function soldTable(g){return `<div class="tbl"><table><thead><tr><th>ลำด�
   g.map(s=>`<tr><td>${esc(s[2])}</td><td>${esc(s[5])}</td><td>${esc(s[3])}</td><td>${esc(s[4])}</td><td class="n">${fm(s[6])}</td><td class="n"><b>${fm(s[7])}</b></td><td class="n">${s[6]?Math.round(s[7]/s[6]*100):'-'}</td></tr>`).join('')+'</tbody></table></div>'}
 
 // ---------- filters ----------
-function liveRows(){const R=ROUTES[route];return DATA[R.area].filter(r=>!r.red&&!r.ns3&&(!R.type||r.kind===R.type))}
+// ค้นหา (F.q) = รวมทรัพย์ที่จบแล้ว (ขาย/ถอน) ด้วย เพื่อดูผลย้อนหลังได้ (ผู้ใช้ค้น 19-1 ที่ขายไปแล้วไม่เจอ 29/10/69)
+function liveRows(){const R=ROUTES[route];const q=qn(F.q);return DATA[R.area].filter(r=>(!r.red||q)&&!r.ns3&&(!R.type||r.kind===R.type))}
 // ค้นหา: "26-1" = ลำดับตรงตัว · อย่างอื่นค้นในลำดับ/โฉนด/ตำบล/อำเภอ/คดี/โจทก์
 const qn=s=>String(s||'').replace(/\s/g,'').toLowerCase();
 const qpass=r=>{const q=qn(F.q);if(!q)return true;if(/^\d+-\d+$/.test(q))return qn(r.seq)===q;if(/^\d+$/.test(q))return qn(r.seq).split('-')[0]===q||qn(r.dn).includes(q);return [r.seq,r.dn,r.tb,r.am,r.cs,r.pl,...(nameOf(r)||[])].map(qn).join('|').includes(q)};

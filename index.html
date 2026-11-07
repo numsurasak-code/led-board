@@ -277,6 +277,9 @@ function price(r,prevNob){
 function addHist(r,H){
   r.hk=(r.cs||'').replace(/[\s.]/g,'')+'|'+String(r.dn||'').trim().split(/[,\-\s]/)[0];
   r.H=(H.h&&H.h[r.hk])||[];
+  // ผลนัดที่ผ่านไปแต่หน้าเว็บกรมยังไม่อัปเดต (s=0) → เติมจากรายงานผลขาย (เช่น 3/11/69 ไม่มีผู้สู้ → นัด 24/11 ลดอีกขั้น)
+  let fill=false; r.d.forEach((d,j)=>{if(r.s[j]===0&&d<TODAY){const x=r.H.find(x=>x[0]===d);if(x&&x[2]==='ไม่มีผู้สู้'){r.s[j]=3;fill=true}}});
+  if(fill) derive(r);
   const cur=new Set(r.d); const prevDates=[...new Set(r.H.filter(x=>!cur.has(x[0])).map(x=>x[0]))];
   r.prevN=prevDates.length; r.relist=r.prevN>0;
   r.hot=(H.hot||{})[r.hk]||null; // [%ของราคาเริ่มต้น, ราคาขายได้, วันที่, %ของราคาประเมิน] เมื่อขายได้ ≥110% ของราคาเริ่มต้น
@@ -611,7 +614,7 @@ function pop(r){
   return `<div class="pop">${r.won?`<div class="wonbar">✅ จบแล้ว · ขายได้ <b>${fm(r.soldPrice)} บ.</b> (${fd(r.soldDate)})${r.pr?` · ${Math.round(r.soldPrice/r.pr*100)}% ของราคาประเมิน`:''}</div>`:''}
   <h3>${r.spec?'⭐ ':''}ลำดับ ${esc(r.seq)} · ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดินเปล่า'}${r.es===1?' <small title="คาดว่าเป็นบ้านในหมู่บ้านจัดสรร (เลขโฉนดติดกัน/โน้ต)">🏘 จัดสรร</small>':r.es===2?' <small title="คาดว่าเป็นบ้านปลูกเอง/ทั่วไป">🏠 ปลูกเอง</small>':''}</h3>
   ${r.seenG?seenBox(r.seenG,r):''}
-  <div class="round"><span class="tag t-lot">${esc(r.lotTxt)}</span>${r.red?`<span class="tag t-wd">ปิดแล้ว: ${esc(st(r.s.find(c=>c&&c!==3)||r.lastCode)[0])}</span>`:''}${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}</div>
+  <div class="round"><span class="tag t-lot">${esc(r.lotTxt)}</span>${r.red?`<span class="tag t-wd">ปิดแล้ว: ${esc(st(r.s.find(c=>c&&c!==3)||r.lastCode)[0])}</span>`:''}${r.isNew?'<span class="tag t-new">🆕 ทรัพย์ใหม่</span>':''}<span class="tag t-round">${r.roundTxt}</span>${r.nob?`<span class="tag t-nobid">หลุดมาแล้ว ${r.nob} นัด</span>`:''}${r.relist?`<span class="tag t-relist">🔁 กลับมาอีกครั้ง · เคยขึ้นมาแล้ว ${r.prevN} นัด</span>`:''}${r.caseAge>=3?`<span class="tag t-old">คดีปี ${r.caseYear} (${r.caseAge} ปี)</span>`:''}${r.soldPrice?`<span class="tag t-sold">ขายได้ ${fm(r.soldPrice)} บ. (${fd(r.soldDate)})</span>`:''}${ghbTag(r)}</div>
   ${PUBLIC&&r.pic?`<a href="img/${esc(r.pic)}" target="_blank" rel="noopener"><img class="ph" src="img/${esc(r.pic)}" alt="ภาพทรัพย์ลำดับ ${esc(r.seq)}" loading="lazy" onerror="this.src='https://asset.led.go.th/PPKPicture/${esc(r.pic)}';this.onerror=()=>this.remove()"></a>`:''}
   ${r.approx?'<div class="approx">📍 ตำแหน่งประมาณกลางแขวง ยังไม่ใช่แปลงจริง</div>':''}
   ${r.debtOn?`<div class="warn">⚠️ จำนองติดไป: ผู้ซื้อต้องรับหนี้ ${fm(r.db)} บ.${r.dbn?' ('+esc(r.dbn)+')':''}<br><span style="font-weight:400">ต้นทุนจริง ≈ ราคาประมูล ${fm(r.sp)} + หนี้ ${fm(r.db)} = <b>${fm(r.cost)} บ.</b> (${r.pr?Math.round(r.cost/r.pr*100):'-'}% ของราคาประเมิน)${debtGrade(r)?`<br>${debtGrade(r)[0]} <b>${debtGrade(r)[1]}</b> · ราคาประเมินกรมมักต่ำกว่าราคาตลาด ถ้าหนี้ค้างนานอาจมีดอกเบี้ยเพิ่ม`:''}</span></div>`:''}
@@ -651,6 +654,15 @@ document.addEventListener('click',e=>{const b=e.target.closest('button[data-t]')
   const r=[...(DATA.cy||[]),...(DATA.bk||[])].find(x=>x.k===b.dataset.t);if(r&&r.mk&&r.mk.isPopupOpen&&r.mk.isPopupOpen())r.mk.setPopupContent(pop(r));});
 
 // ---------- tables ----------
+// 🏦 บ้านโจทก์ ธอส. (ชัยภูมิ): ผลประมูล เม.ย.–ต.ค. 69 บ้าน ธอส. 72 หลัง ขายที่ ~90% ของราคาประเมิน 31 หลัง (43%) เทียบโจทก์อื่น 9% → น่าจะ ธอส. ซื้อคืนเองเมื่อราคาถึง 90% (รายงานกรมไม่ระบุผู้ซื้อ)
+function ghbTag(r,short){
+  if(r.area!=='cy'||!r.house||r.red||r.soldPrice||!r.next||r.debtOn||!/อาคารสงเคราะห์/.test(r.pl||'')||!(r.pr>0&&r.sp>0))return '';
+  const q=r.sp/r.pr, tip='บ้าน ธอส. ชัยภูมิ 72 หลัง ขายที่ราว 90% ของราคาประเมิน 31 หลัง (43%) โจทก์อื่น 9% — คาดว่า ธอส. ซื้อคืนเองเมื่อราคาลงถึง 90% (อนุมานจากราคา รายงานกรมไม่ระบุผู้ซื้อ)';
+  const [t,l]=q>=.95?['t-nobid',short?'🏦 ธอส. นัดหน้าอาจซื้อคืน':'🏦 ธอส. · ถ้านัดนี้ไม่มีผู้สู้ นัดหน้า 90% ธอส. มักซื้อคืน']
+    :q>=.85?['t-wd',short?'🏦 ธอส. นัดสุดท้าย':'🏦 ธอส. · ราคา 90% = นัดสุดท้ายก่อน ธอส. ซื้อคืน (ให้เกินราคาเริ่มถึงจะชนะ)']
+    :['t-relist',short?'🏦 ธอส. ปล่อยผ่าน':'🏦 ธอส. ไม่ซื้อคืนที่ 90% · ตรวจสภาพบ้านก่อน'];
+  return `<span class="tag ${t}" title="${tip}">${l}</span>`;
+}
 const kindTh=r=>`<span class="dot" style="background:var(${colorOf(r)})"></span> ${r.condo?'ห้องชุด':r.house?'บ้าน':'ที่ดิน'}${r.debtOn?' <span class="tag t-wd">ติดจำนอง</span>':''}`;
 // กดรูปเล็กในตาราง = ดูรูปเต็มจอ (ไม่พาไปแผนที่) · กดอีกครั้งหรือ Esc เพื่อปิด
 document.addEventListener('click',e=>{const t=e.target.closest('img.th');if(!t)return;e.stopPropagation();e.preventDefault();
@@ -660,7 +672,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('lb'))$('lb').hid
 function tableOf(rows,withArea){
   return `<div class="tbl"><table><thead><tr><th></th><th>นัดถัดไป</th><th>ลำดับ / ล็อต</th><th>ประเภท</th>${withArea?'<th>พื้นที่</th>':''}<th>${withArea?'ตำบล/แขวง':'ตำบล/แขวง'}</th><th>เนื้อที่</th><th class="n">ราคาประเมิน</th><th class="n">ราคาเริ่มต้น</th><th>หมุด</th></tr></thead><tbody>
   ${rows.map(r=>{const m=kindOf(r);return `<tr data-k="${esc(r.k)}" data-a="${r.area}"><td>${r.spec?'⭐':''}${m==='bid'?'🎯':m==='watch'?'👁':''}${parkOf(r)&&!isBack(r)?'<br><small title="อยู่ในรายการรอกลับมา">⏳</small>':isBack(r)?'<br><small title="กลับมาประมูลแล้ว">🔔</small>':''}</td>
-   <td>${r.red?(r.soldPrice?`<span class="tag t-sold">ขายได้ ${fd(r.soldDate)}</span><br><b>${fm(r.soldPrice)} บ.</b> <small>${r.pr?Math.round(r.soldPrice/r.pr*100)+'% ของราคาประเมิน':''}</small>`:`<span class="tag t-sold">ปิดแล้ว: ${st(r.s.find(c=>c&&c!==3)||r.lastCode)[0]}</span>`):fd(r.next)+`<br><small>${r.roundTxt}</small>${r.isNew?' <span class="tag t-new">ใหม่</span>':''}${r.nob?`<br><span class="tag t-nobid">หลุด ${r.nob} นัด</span>`:''}${r.relist?` <span class="tag t-relist">🔁 ${r.prevN}</span>`:''}`}</td>
+   <td>${r.red?(r.soldPrice?`<span class="tag t-sold">ขายได้ ${fd(r.soldDate)}</span><br><b>${fm(r.soldPrice)} บ.</b> <small>${r.pr?Math.round(r.soldPrice/r.pr*100)+'% ของราคาประเมิน':''}</small>`:`<span class="tag t-sold">ปิดแล้ว: ${st(r.s.find(c=>c&&c!==3)||r.lastCode)[0]}</span>`):fd(r.next)+`<br><small>${r.roundTxt}</small>${r.isNew?' <span class="tag t-new">ใหม่</span>':''}${r.nob?`<br><span class="tag t-nobid">หลุด ${r.nob} นัด</span>`:''}${r.relist?` <span class="tag t-relist">🔁 ${r.prevN}</span>`:''}${ghbTag(r,1)?'<br>'+ghbTag(r,1):''}`}</td>
    <td>${PUBLIC&&r.pic?`<img class="th" src="img/${esc(r.pic)}" alt="" loading="lazy" onerror="this.remove()">`:''}${esc(r.seq)}<br><span class="tag t-lot">${esc(r.lotTxt)}</span></td><td>${kindTh(r)}</td>${withArea?`<td>${r.area==='cy'?'ชัยภูมิ':'กทม.'}</td>`:''}
    <td>${esc(r.tbx)}${noteOf(r)?`<br><small>📝 ${esc(noteOf(r))}</small>`:''}</td><td>${esc(r.condo?r.ar:r.a)}</td><td class="n">${fm(r.pr)}</td><td class="n"><b>${fm(r.sp)}</b><br><small>${r.spSrc}</small></td>
    <td>${r.lat?(r.approx?'≈':'📍'):'—'}</td></tr>`}).join('')}</tbody></table></div>`;

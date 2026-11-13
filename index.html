@@ -216,6 +216,14 @@ const $=id=>document.getElementById(id);
 
 // ---------- data ----------
 const DATA={cy:null,pk:null,bk:null}, BASE={}, HIST={}, ANA={}, SEEN={}, SEENK={};
+// โจทก์ → กลุ่มธนาคาร/เจ้าหนี้ (ตัวกรอง "โจทก์") · บัตรกรุงไทย/อยุธยา แคปปิตอล ฯลฯ ไม่ใช่ธนาคาร (ไม่มีคำว่า ธนาคาร)
+const BANKS=[['ธอส.',/อาคารสงเคราะห์/],['ออมสิน',/ออมสิน/],['ธ.ก.ส.',/เพื่อการเกษตร/],['กรุงไทย',/กรุงไทย/],['กสิกรไทย',/กสิกร/],['ไทยพาณิชย์',/ไทยพาณิชย์/],['กรุงเทพ',/ธนาคาร\s*กรุงเทพ/],['กรุงศรีอยุธยา',/กรุงศรี/],['ทหารไทยธนชาต',/ทหารไทย|ธนชาต/],['ทิสโก้',/ทิสโก้/],['เกียรตินาคินภัทร',/เกียรตินาคิน/],['ซีไอเอ็มบี',/ซีไอเอ็มบี/],['ยูโอบี',/ยูโอบี/],['แลนด์ แอนด์ เฮ้าส์',/แลนด์ แอนด์ เฮ้าส์/],['อิสลาม',/อิสลาม/],['SME D Bank',/วิสาหกิจขนาดกลาง/],['ไอซีบีซี',/ไอซีบีซี/],['ไทยเครดิต',/ไทยเครดิต/]];
+function bankOf(pl){pl=pl||'';
+  if(/ธนาคาร/.test(pl)){const b=BANKS.find(([,re])=>re.test(pl));return b?b[0]:'ธนาคารอื่น'}
+  if(/บริหารสินทรัพย์/.test(pl))return 'บริษัทบริหารสินทรัพย์ (AMC)';
+  if(/บุคคล|^\s*(นาย|นาง|น\.ส|ว่าที่)/.test(pl))return 'บุคคล';
+  if(/กรม|สำนักงาน|กองทุน|สหกรณ์|การเคหะ|องค์การ/.test(pl))return 'หน่วยงานรัฐ/กองทุน/สหกรณ์';
+  return 'บริษัทอื่น (ลีสซิ่ง/บัตร/สินเชื่อ)';}
 function derive(r){
   r.k=(r.lot+'|'+r.seq+'|'+r.dn).replace(/[^\w฀-๿|.\- ]/g,'');
   r.condo=/ห้องชุด/.test(r.ty); r.house=!r.condo&&/สิ่งปลูกสร้าง/.test(r.ty); r.land=!r.condo&&!r.house;
@@ -228,6 +236,7 @@ function derive(r){
   price(r,0);
   let li=-1; r.d.forEach((d,j)=>{if(d<TODAY&&r.s[j]!==0)li=j}); r.li=li; r.lastCode=li>=0?r.s[li]:null;
   {const m=(r.lot||'').match(/([ก-๙]{1,3}\.[ก-๙]{1,3}\.)\s*\/\s*\d{2}(\d{2})/);r.lotTxt=m?`ล็อต ${m[1]} ${m[2]}`:'ล็อต '+(r.lot||'').replace(/\s*-\s*1$/,'');}
+  r.bankG=bankOf(r.pl); r.isBank=BANKS.some(([n])=>n===r.bankG)||r.bankG==='ธนาคารอื่น';
   r.isNew=r.ni===0; r.roundTxt=r.next?`นัดที่ ${r.ni+1}/${r.d.length}`:'ครบทุกนัดแล้ว';
   r.slip=r.nob?`ไม่มีผู้สู้ราคามาแล้ว ${r.nob} นัด`:(r.isNew?'ทรัพย์ใหม่ ยังไม่เคยประมูล':'');
   return r;
@@ -370,7 +379,7 @@ function saveNote(k,txt){const r=allRows().find(x=>x.k===k);if(!r)return;txt=txt
   if(txt===(r.pn||''))delete NOTES[k];else NOTES[k]=txt;writeMy();if(saveMode!=='db')noteFlag('บันทึกในเครื่องนี้แล้ว');else noteFlag('กำลังบันทึก…');}
 
 // ---------- routing ----------
-let route='home', view='map', F={date:'',type:'',debt:'',tb:'',max:0,mine:'',stat:'',es:'',lot:'',am:''};
+let route='home', view='map', F={date:'',type:'',debt:'',tb:'',max:0,mine:'',stat:'',es:'',lot:'',am:'',bank:''};
 function go(r){const h=r==='home'?'':r; if(location.hash.slice(1)!==h) location.hash=h; else show(r)}  // hashchange เรียก show เอง
 window.addEventListener('hashchange',()=>show(location.hash.slice(1)||'home'));
 $('btnHome').onclick=()=>go('home');
@@ -384,7 +393,7 @@ async function show(r){
   if(!R.hub){$('btnHub').hidden=false;$('btnHub').textContent='‹ '+AREAS[R.area].short}
   if(R.hub){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sHome'); renderHub(R.area); return; }
   if(R.page){ $('tabs').hidden=true; $('title').textContent=R.title; $('sched').textContent=AREAS[R.area].sched; screen('sUpd'); await renderAnalysis(R.area); return; }
-  F={date:'',type:R.type,debt:'',tb:'',max:0,mine:'',stat:'',es:'',lot:'',am:PRE_AM}; PRE_AM=''; view=PRE_VIEW||'map'; PRE_VIEW='';
+  F={date:'',type:R.type,debt:'',tb:'',max:0,mine:'',stat:'',es:'',lot:'',am:PRE_AM,bank:''}; PRE_AM=''; view=PRE_VIEW||'map'; PRE_VIEW='';
   $('tabs').hidden=false; $('title').textContent=R.title; $('sched').innerHTML=esc(AREAS[R.area].sched)+(AREAS[R.area].live?` · <a href="${AREAS[R.area].live}" target="_blank" rel="noopener" style="color:inherit;font-weight:600">🔴 ดูประมูลสด</a>`:'');
   buildRail(); drawBase(R.area); renderRoute(true);
 }
@@ -468,7 +477,7 @@ function liveRows(){const R=ROUTES[route];const q=qn(F.q);return DATA[R.area].fi
 // ค้นหา: "26-1" = ลำดับตรงตัว · อย่างอื่นค้นในลำดับ/โฉนด/ตำบล/อำเภอ/คดี/โจทก์
 const qn=s=>String(s||'').replace(/\s/g,'').toLowerCase();
 const qpass=r=>{const q=qn(F.q);if(!q)return true;if(/^\d+-\d+$/.test(q))return qn(r.seq)===q;if(/^\d+$/.test(q))return qn(r.seq).split('-')[0]===q||qn(r.dn).includes(q);return [r.seq,r.dn,r.tb,r.am,r.cs,r.pl,...(nameOf(r)||[])].map(qn).join('|').includes(q)};
-const pass=r=>qpass(r)&&(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.es||String(r.es||'')===F.es)&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?(!!parkOf(r)&&!isBack(r)):kindOf(r)===F.mine));
+const pass=r=>qpass(r)&&(!F.am||r.am===F.am)&&(!F.lot||r.lotTxt===F.lot)&&(!F.stat||(F.stat==='new'?r.isNew:F.stat==='slip'?r.nob>=2:F.stat==='relist'?r.relist:F.stat==='old'?r.caseAge>=5:true))&&(!F.date||r.next===F.date)&&(!F.type||r.kind===F.type)&&(!F.debt||(F.debt==='debt')===r.debtOn)&&(!F.tb||r.tbx===F.tb)&&(!F.max||r.sp<=F.max)&&(!F.es||String(r.es||'')===F.es)&&(!F.bank||(F.bank==='*'?r.isBank:r.bankG===F.bank))&&(!F.mine||(F.mine==='spec'?r.spec:F.mine==='seen'?(!!parkOf(r)&&!isBack(r)):kindOf(r)===F.mine));
 function chips(id,opts,prop){const el=$(id);el.innerHTML=opts.map(([v,l])=>`<button type="button" class="chip" aria-pressed="${F[prop]===v}" data-v="${v}">${l}</button>`).join('');el.onclick=e=>{const b=e.target.closest('button');if(!b)return;F[prop]=b.dataset.v;chips(id,opts,prop);renderRoute(true)}}
 function buildRail(){
   const R=ROUTES[route], A=AREAS[R.area], live=liveRows();
@@ -485,6 +494,7 @@ function buildRail(){
    <div class="f"><b>ภาระผูกพัน</b><div class="chips" id="fDebt"></div></div>
    ${ams.length>1?`<div class="f"><label for="fAm"><b>${R.area==='bk'?'เขต':'อำเภอ'}</b></label><select id="fAm"><option value="">ทั้งหมด (${live.length})</option>${ams.map(a=>`<option value="${esc(a)}">${esc(a)} (${live.filter(r=>r.am===a).length})</option>`).join('')}</select></div>`:''}
    <div class="f"><label for="fTb"><b>${R.area==='bk'?'แขวง':'ตำบล'}</b></label><select id="fTb"></select></div>
+   <div class="f"><label for="fBank"><b>🏦 โจทก์ (ธนาคาร/เจ้าหนี้)</b></label><select id="fBank"></select></div>
    <div class="f"><label for="fMax"><b>ราคาเริ่มต้นไม่เกิน (บาท)</b></label><input type="number" id="fMax" inputmode="numeric" placeholder="เช่น 800000" step="50000"></div>
    <div class="f"><b>แสดงเฉพาะ</b><div class="chips" id="fMine"></div></div>
    <div class="f legend"><b>สีหมุด</b>
@@ -507,6 +517,9 @@ function buildRail(){
   if($('fAm')){$('fAm').value=F.am;fillTb();}
   if($('fAm'))$('fAm').onchange=e=>{F.am=e.target.value;F.tb='';fillTb();renderRoute(true)};
   $('fTb').onchange=e=>{F.tb=e.target.value;renderRoute(true)};
+  {const g={};live.forEach(r=>g[r.bankG]=(g[r.bankG]||0)+1);const bk=Object.keys(g).filter(k=>live.some(r=>r.bankG===k&&r.isBank)).sort((a,b)=>g[b]-g[a]),ot=Object.keys(g).filter(k=>!bk.includes(k)).sort((a,b)=>g[b]-g[a]);
+   $('fBank').innerHTML=`<option value="">ทั้งหมด (${live.length})</option><option value="*">🏦 เฉพาะธนาคาร (${live.filter(r=>r.isBank).length})</option><optgroup label="ธนาคาร">${bk.map(k=>`<option value="${esc(k)}">${esc(k)} (${g[k]})</option>`).join('')}</optgroup><optgroup label="เจ้าหนี้อื่น">${ot.map(k=>`<option value="${esc(k)}">${esc(k)} (${g[k]})</option>`).join('')}</optgroup>`;
+   $('fBank').value=F.bank||'';$('fBank').onchange=e=>{F.bank=e.target.value;renderRoute(true)};}
   $('fMax').oninput=e=>{F.max=+e.target.value||0;renderRoute(false)};
   $('fQ').oninput=e=>{F.q=e.target.value;renderRoute(!!F.q)};
 }

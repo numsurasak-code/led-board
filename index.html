@@ -287,8 +287,11 @@ function addHist(r,H){
   r.hk=(r.cs||'').replace(/[\s.]/g,'')+'|'+String(r.dn||'').trim().split(/[,\-\s]/)[0];
   r.H=(H.h&&H.h[r.hk])||[];
   // ผลนัดที่ผ่านไปแต่หน้าเว็บกรมยังไม่อัปเดต (s=0) → เติมจากรายงานผลขาย (เช่น 3/11/69 ไม่มีผู้สู้ → นัด 24/11 ลดอีกขั้น)
-  let fill=false; r.d.forEach((d,j)=>{if(r.s[j]===0&&d<TODAY){const x=r.H.find(x=>x[0]===d);if(x&&x[2]==='ไม่มีผู้สู้'){r.s[j]=3;fill=true}}});
+  // ขายได้/ถอน ที่หน้าเว็บกรมยังไม่ปิด → ปิดเองบนบอร์ด (เช่น 22-1 ล็อต ต.ค. ขาย 1,010,000 เมื่อ 17/11/69 แต่กรมยังโชว์นัด 3)
+  const FILL={'ไม่มีผู้สู้':3,'ขายได้':1,'ถอน':6,'งด':10};
+  let fill=false, endJ=-1; r.d.forEach((d,j)=>{if(r.s[j]===0&&d<TODAY){const x=r.H.find(x=>x[0]===d);const c=x&&FILL[x[2]];if(c){r.s[j]=c;fill=true;if(c===1&&x[3]>0||c===6)endJ=j}}});
   if(fill) derive(r);
+  if(endJ>=0&&!r.s.slice(endJ+1).some((c,k)=>c!==0&&r.d[endJ+1+k]<TODAY)){r.red=1;r.closedByHist=1;r.next=null;r.roundTxt='จบแล้ว';r.slip=''}
   const cur=new Set(r.d); const prevDates=[...new Set(r.H.filter(x=>!cur.has(x[0])).map(x=>x[0]))];
   r.prevN=prevDates.length; r.relist=r.prevN>0;
   r.hot=(H.hot||{})[r.hk]||null; // [%ของราคาเริ่มต้น, ราคาขายได้, วันที่, %ของราคาประเมิน] เมื่อขายได้ ≥110% ของราคาเริ่มต้น
